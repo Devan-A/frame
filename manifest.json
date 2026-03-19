@@ -1,0 +1,9 @@
+{
+  "name": "Concept Board Parser",
+  "id": "concept-board-parser",
+  "api": "1.0.0",
+  "main": "dist/controller.js",
+  "ui": "dist/index.html",
+  "editorType": ["figjam"],
+  "permissions": []
+}

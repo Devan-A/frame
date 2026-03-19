@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  background-color: var(--figma-color-bg);
+  color: var(--figma-color-text);
+}
+
+:root {
+  --figma-color-bg: #2c2c2c;
+  --figma-color-bg-secondary: #383838;
+  --figma-color-bg-tertiary: #1e1e1e;
+  --figma-color-border: #4a4a4a;
+  --figma-color-text: #ffffff;
+  --figma-color-text-secondary: #b3b3b3;
+  --figma-color-text-tertiary: #8c8c8c;
+  --figma-color-accent: #0d99ff;
+  --figma-color-accent-hover: #0a7fd4;
+  --score-1: #f24822;
+  --score-2: #ffa629;
+  --score-3: #ffcd29;
+  --score-4: #14ae5c;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--figma-color-accent)] text-white px-4 py-2 rounded font-medium;
+    @apply hover:bg-[var(--figma-color-accent-hover)] transition-colors;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-[var(--figma-color-bg-secondary)] text-white px-3 py-1.5 rounded text-xs;
+    @apply hover:bg-[var(--figma-color-border)] transition-colors border border-[var(--figma-color-border)];
+  }
+
+  .card {
+    @apply bg-[var(--figma-color-bg-secondary)] rounded-lg border border-[var(--figma-color-border)];
+  }
+
+  .score-badge {
+    @apply inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white;
+  }
+
+  .score-1 { background-color: var(--score-1); }
+  .score-2 { background-color: var(--score-2); }
+  .score-3 { background-color: var(--score-3); color: #1e1e1e; }
+  .score-4 { background-color: var(--score-4); }
+
+  .collapsible-header {
+    @apply flex items-center gap-2 cursor-pointer select-none py-2 px-3;
+    @apply hover:bg-[var(--figma-color-bg-tertiary)] rounded transition-colors;
+  }
+
+  .chevron {
+    @apply w-4 h-4 transition-transform duration-200;
+  }
+
+  .chevron.expanded {
+    @apply rotate-90;
+  }
+
+  .feature-item {
+    @apply pl-8 py-1.5 border-l-2 border-[var(--figma-color-border)] ml-4;
+  }
+
+  .clickable-row {
+    @apply cursor-pointer hover:bg-[var(--figma-color-bg-tertiary)] rounded px-2 py-1 transition-colors;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--figma-color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--figma-color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}

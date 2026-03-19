@@ -1,0 +1,1 @@
+{"version":3,"file":"FeatureList.d.ts","sourceRoot":"","sources":["../../../src/ui/components/FeatureList.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,aAAa,CAAC;AAE3C,UAAU,gBAAgB;IACxB,QAAQ,EAAE,OAAO,EAAE,CAAC;CACrB;AAED,wBAAgB,WAAW,CAAC,EAAE,QAAQ,EAAE,EAAE,gBAAgB,2CA8BzD"}

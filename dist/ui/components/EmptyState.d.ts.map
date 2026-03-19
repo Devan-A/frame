@@ -1,0 +1,1 @@
+{"version":3,"file":"EmptyState.d.ts","sourceRoot":"","sources":["../../../src/ui/components/EmptyState.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAE1B,UAAU,eAAe;IACvB,KAAK,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,IAAI,CAAC,EAAE,KAAK,CAAC,SAAS,CAAC;CACxB;AAED,wBAAgB,UAAU,CAAC,EAAE,KAAK,EAAE,WAAW,EAAE,IAAI,EAAE,EAAE,eAAe,2CAgBvE"}

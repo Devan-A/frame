@@ -1,0 +1,950 @@
+/*!***************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js!./src/ui/styles.css ***!
+  \***************************************************************************************************************/
+*, ::before, ::after {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}
+
+::backdrop {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ;
+}/*
+! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com
+*//*
+1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
+2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
+*/
+
+*,
+::before,
+::after {
+  box-sizing: border-box; /* 1 */
+  border-width: 0; /* 2 */
+  border-style: solid; /* 2 */
+  border-color: #e5e7eb; /* 2 */
+}
+
+::before,
+::after {
+  --tw-content: '';
+}
+
+/*
+1. Use a consistent sensible line-height in all browsers.
+2. Prevent adjustments of font size after orientation changes in iOS.
+3. Use a more readable tab size.
+4. Use the user's configured `sans` font-family by default.
+5. Use the user's configured `sans` font-feature-settings by default.
+6. Use the user's configured `sans` font-variation-settings by default.
+7. Disable tap highlights on iOS
+*/
+
+html,
+:host {
+  line-height: 1.5; /* 1 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+  -moz-tab-size: 4; /* 3 */
+  tab-size: 4; /* 3 */
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 4 */
+  font-feature-settings: normal; /* 5 */
+  font-variation-settings: normal; /* 6 */
+  -webkit-tap-highlight-color: transparent; /* 7 */
+}
+
+/*
+1. Remove the margin in all browsers.
+2. Inherit line-height from `html` so users can set them as a class directly on the `html` element.
+*/
+
+body {
+  margin: 0; /* 1 */
+  line-height: inherit; /* 2 */
+}
+
+/*
+1. Add the correct height in Firefox.
+2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
+3. Ensure horizontal rules are visible by default.
+*/
+
+hr {
+  height: 0; /* 1 */
+  color: inherit; /* 2 */
+  border-top-width: 1px; /* 3 */
+}
+
+/*
+Add the correct text decoration in Chrome, Edge, and Safari.
+*/
+
+abbr:where([title]) {
+  text-decoration: underline dotted;
+}
+
+/*
+Remove the default font size and weight for headings.
+*/
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/*
+Reset links to optimize for opt-in styling instead of opt-out.
+*/
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+/*
+Add the correct font weight in Edge and Safari.
+*/
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+/*
+1. Use the user's configured `mono` font-family by default.
+2. Use the user's configured `mono` font-feature-settings by default.
+3. Use the user's configured `mono` font-variation-settings by default.
+4. Correct the odd `em` font sizing in all browsers.
+*/
+
+code,
+kbd,
+samp,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  font-feature-settings: normal; /* 2 */
+  font-variation-settings: normal; /* 3 */
+  font-size: 1em; /* 4 */
+}
+
+/*
+Add the correct font size in all browsers.
+*/
+
+small {
+  font-size: 80%;
+}
+
+/*
+Prevent `sub` and `sup` elements from affecting the line height in all browsers.
+*/
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/*
+1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
+2. Correct table border color inheritance in all Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
+3. Remove gaps between table borders by default.
+*/
+
+table {
+  text-indent: 0; /* 1 */
+  border-color: inherit; /* 2 */
+  border-collapse: collapse; /* 3 */
+}
+
+/*
+1. Change the font styles in all browsers.
+2. Remove the margin in Firefox and Safari.
+3. Remove default padding in all browsers.
+*/
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit; /* 1 */
+  font-feature-settings: inherit; /* 1 */
+  font-variation-settings: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  font-weight: inherit; /* 1 */
+  line-height: inherit; /* 1 */
+  letter-spacing: inherit; /* 1 */
+  color: inherit; /* 1 */
+  margin: 0; /* 2 */
+  padding: 0; /* 3 */
+}
+
+/*
+Remove the inheritance of text transform in Edge and Firefox.
+*/
+
+button,
+select {
+  text-transform: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Remove default button styles.
+*/
+
+button,
+input:where([type='button']),
+input:where([type='reset']),
+input:where([type='submit']) {
+  -webkit-appearance: button; /* 1 */
+  background-color: transparent; /* 2 */
+  background-image: none; /* 2 */
+}
+
+/*
+Use the modern Firefox focus style for all focusable elements.
+*/
+
+:-moz-focusring {
+  outline: auto;
+}
+
+/*
+Remove the additional `:invalid` styles in Firefox. (https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737)
+*/
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+/*
+Add the correct vertical alignment in Chrome and Firefox.
+*/
+
+progress {
+  vertical-align: baseline;
+}
+
+/*
+Correct the cursor style of increment and decrement buttons in Safari.
+*/
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/*
+1. Correct the odd appearance in Chrome and Safari.
+2. Correct the outline style in Safari.
+*/
+
+[type='search'] {
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
+}
+
+/*
+Remove the inner padding in Chrome and Safari on macOS.
+*/
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/*
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Change font properties to `inherit` in Safari.
+*/
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
+}
+
+/*
+Add the correct display in Chrome and Safari.
+*/
+
+summary {
+  display: list-item;
+}
+
+/*
+Removes the default spacing and border for appropriate elements.
+*/
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+Reset default styling for dialogs.
+*/
+dialog {
+  padding: 0;
+}
+
+/*
+Prevent resizing textareas horizontally by default.
+*/
+
+textarea {
+  resize: vertical;
+}
+
+/*
+1. Reset the default placeholder opacity in Firefox. (https://github.com/tailwindlabs/tailwindcss/issues/3300)
+2. Set the default placeholder color to the user's configured gray 400 color.
+*/
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1; /* 1 */
+  color: #9ca3af; /* 2 */
+}
+
+/*
+Set the default cursor for buttons.
+*/
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+/*
+Make sure disabled buttons don't get the pointer cursor.
+*/
+:disabled {
+  cursor: default;
+}
+
+/*
+1. Make replaced elements `display: block` by default. (https://github.com/mozdevs/cssremedy/issues/14)
+2. Add `vertical-align: middle` to align replaced elements more sensibly by default. (https://github.com/jensimmons/cssremedy/issues/14#issuecomment-634934210)
+   This can trigger a poorly considered lint error in some tools but is included by design.
+*/
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block; /* 1 */
+  vertical-align: middle; /* 2 */
+}
+
+/*
+Constrain images and videos to the parent width and preserve their intrinsic aspect ratio. (https://github.com/mozdevs/cssremedy/issues/14)
+*/
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Make elements with the HTML hidden attribute stay hidden by default */
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none;
+}
+.container {
+  width: 100%;
+}
+@media (min-width: 640px) {
+
+  .container {
+    max-width: 640px;
+  }
+}
+@media (min-width: 768px) {
+
+  .container {
+    max-width: 768px;
+  }
+}
+@media (min-width: 1024px) {
+
+  .container {
+    max-width: 1024px;
+  }
+}
+@media (min-width: 1280px) {
+
+  .container {
+    max-width: 1280px;
+  }
+}
+@media (min-width: 1536px) {
+
+  .container {
+    max-width: 1536px;
+  }
+}
+.btn-primary {
+  border-radius: 0.25rem;
+  background-color: var(--figma-color-accent);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-weight: 500;
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.btn-primary:hover {
+  background-color: var(--figma-color-accent-hover);
+}
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.btn-secondary {
+  border-radius: 0.25rem;
+  background-color: var(--figma-color-bg-secondary);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 11px;
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+  border-width: 1px;
+  border-color: var(--figma-color-border);
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.btn-secondary:hover {
+  background-color: var(--figma-color-border);
+}
+.card {
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-color: var(--figma-color-border);
+  background-color: var(--figma-color-bg-secondary);
+}
+.score-badge {
+  display: inline-flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+.collapsible-header {
+  display: flex;
+  cursor: pointer;
+  user-select: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-radius: 0.25rem;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.collapsible-header:hover {
+  background-color: var(--figma-color-bg-tertiary);
+}
+.chevron {
+  height: 1rem;
+  width: 1rem;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+.chevron.expanded {
+  --tw-rotate: 90deg;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.feature-item {
+  margin-left: 1rem;
+  border-left-width: 2px;
+  border-color: var(--figma-color-border);
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 2rem;
+}
+.clickable-row {
+  cursor: pointer;
+  border-radius: 0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.clickable-row:hover {
+  background-color: var(--figma-color-bg-tertiary);
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.ml-4 {
+  margin-left: 1rem;
+}
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.flex {
+  display: flex;
+}
+.inline-flex {
+  display: inline-flex;
+}
+.h-4 {
+  height: 1rem;
+}
+.h-5 {
+  height: 1.25rem;
+}
+.h-6 {
+  height: 1.5rem;
+}
+.h-screen {
+  height: 100vh;
+}
+.w-4 {
+  width: 1rem;
+}
+.w-5 {
+  width: 1.25rem;
+}
+.w-6 {
+  width: 1.5rem;
+}
+.w-full {
+  width: 100%;
+}
+.min-w-0 {
+  min-width: 0px;
+}
+.max-w-\[240px\] {
+  max-width: 240px;
+}
+.flex-1 {
+  flex: 1 1 0%;
+}
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+@keyframes spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-start {
+  align-items: flex-start;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.gap-1 {
+  gap: 0.25rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
+}
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
+}
+.space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.overflow-y-auto {
+  overflow-y: auto;
+}
+.break-words {
+  overflow-wrap: break-word;
+}
+.rounded-full {
+  border-radius: 9999px;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.border {
+  border-width: 1px;
+}
+.border-b {
+  border-bottom-width: 1px;
+}
+.border-l {
+  border-left-width: 1px;
+}
+.border-t {
+  border-top-width: 1px;
+}
+.border-\[var\(--figma-color-border\)\] {
+  border-color: var(--figma-color-border);
+}
+.border-red-700 {
+  --tw-border-opacity: 1;
+  border-color: rgb(185 28 28 / var(--tw-border-opacity, 1));
+}
+.bg-\[var\(--figma-color-bg\)\] {
+  background-color: var(--figma-color-bg);
+}
+.bg-\[var\(--figma-color-bg-secondary\)\] {
+  background-color: var(--figma-color-bg-secondary);
+}
+.bg-\[var\(--figma-color-border\)\] {
+  background-color: var(--figma-color-border);
+}
+.bg-red-900\/30 {
+  background-color: rgb(127 29 29 / 0.3);
+}
+.p-3 {
+  padding: 0.75rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.py-12 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.pb-3 {
+  padding-bottom: 0.75rem;
+}
+.pl-3 {
+  padding-left: 0.75rem;
+}
+.pl-6 {
+  padding-left: 1.5rem;
+}
+.text-center {
+  text-align: center;
+}
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.text-\[10px\] {
+  font-size: 10px;
+}
+.text-base {
+  font-size: 13px;
+}
+.text-sm {
+  font-size: 12px;
+}
+.text-xs {
+  font-size: 11px;
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.italic {
+  font-style: italic;
+}
+.text-\[var\(--figma-color-border\)\] {
+  color: var(--figma-color-border);
+}
+.text-\[var\(--figma-color-text\)\] {
+  color: var(--figma-color-text);
+}
+.text-\[var\(--figma-color-text-secondary\)\] {
+  color: var(--figma-color-text-secondary);
+}
+.text-\[var\(--figma-color-text-tertiary\)\] {
+  color: var(--figma-color-text-tertiary);
+}
+.text-\[var\(--score-1\)\] {
+  color: var(--score-1);
+}
+.text-\[var\(--score-3\)\] {
+  color: var(--score-3);
+}
+.text-\[var\(--score-4\)\] {
+  color: var(--score-4);
+}
+.text-red-200 {
+  --tw-text-opacity: 1;
+  color: rgb(254 202 202 / var(--tw-text-opacity, 1));
+}
+.text-red-300 {
+  --tw-text-opacity: 1;
+  color: rgb(252 165 165 / var(--tw-text-opacity, 1));
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  background-color: var(--figma-color-bg);
+  color: var(--figma-color-text);
+}
+
+:root {
+  --figma-color-bg: #2c2c2c;
+  --figma-color-bg-secondary: #383838;
+  --figma-color-bg-tertiary: #1e1e1e;
+  --figma-color-border: #4a4a4a;
+  --figma-color-text: #ffffff;
+  --figma-color-text-secondary: #b3b3b3;
+  --figma-color-text-tertiary: #8c8c8c;
+  --figma-color-accent: #0d99ff;
+  --figma-color-accent-hover: #0a7fd4;
+  --score-1: #f24822;
+  --score-2: #ffa629;
+  --score-3: #ffcd29;
+  --score-4: #14ae5c;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--figma-color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--figma-color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+.hover\:text-\[var\(--figma-color-accent\)\]:hover {
+  color: var(--figma-color-accent);
+}
+
+
+/*# sourceMappingURL=data:application/json;charset=utf-8;base64,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QkFBbUc7RUFBbkcsb0JBQW1HO0VBQW5HLHVCQUFtRztFQUFuRywrRkFBbUc7RUFBbkcsd0RBQW1HO0VBQW5HO0FBQW1HO0FBQW5HO0VBQUE7QUFBbUc7QUEzRXZHO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjs7RUFBQTtJQUFBO0VBQW1CO0FBQUE7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQSx1QkFBbUI7RUFBbkIsK0RBQW1CO0VBQW5CO0FBQW1CO0FBQW5CO0VBQUEsdUJBQW1CO0VBQW5CLDhEQUFtQjtFQUFuQjtBQUFtQjtBQUFuQjtFQUFBLHVCQUFtQjtFQUFuQiwrREFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBLHNCQUFtQjtFQUFuQjtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQSxvQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxxQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxrQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxvQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxvQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxpQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxtQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQSxvQkFBbUI7RUFBbkI7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUE7QUFBbUI7QUFBbkI7RUFBQTtBQUFtQjtBQUFuQjtFQUFBO0FBQW1CO0FBQW5CO0VBQUEsb0JBQW1CO0VBQW5CO0FBQW1CO0FBQW5CO0VBQUEsb0JBQW1CO0VBQW5CO0FBQW1COztBQUVuQjtFQUNFLHNCQUFzQjtFQUN0QixTQUFTO0VBQ1QsVUFBVTtBQUNaOztBQUVBO0VBQ0UsdUZBQXVGO0VBQ3ZGLGVBQWU7RUFDZixnQkFBZ0I7RUFDaEIsdUNBQXVDO0VBQ3ZDLDhCQUE4QjtBQUNoQzs7QUFFQTtFQUNFLHlCQUF5QjtFQUN6QixtQ0FBbUM7RUFDbkMsa0NBQWtDO0VBQ2xDLDZCQUE2QjtFQUM3QiwyQkFBMkI7RUFDM0IscUNBQXFDO0VBQ3JDLG9DQUFvQztFQUNwQyw2QkFBNkI7RUFDN0IsbUNBQW1DO0VBQ25DLGtCQUFrQjtFQUNsQixrQkFBa0I7RUFDbEIsa0JBQWtCO0VBQ2xCLGtCQUFrQjtBQUNwQjs7QUFpREE7RUFDRSxVQUFVO0FBQ1o7O0FBRUE7RUFDRSxpQ0FBaUM7QUFDbkM7O0FBRUE7RUFDRSxxQ0FBcUM7RUFDckMsa0JBQWtCO0FBQ3BCOztBQUVBO0VBQ0UsbUJBQW1CO0FBQ3JCOztBQWhHQTtFQUFBO0FBaUdBIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vY29uY2VwdC1ib2FyZC1wYXJzZXIvLi9zcmMvdWkvc3R5bGVzLmNzcyJdLCJzb3VyY2VzQ29udGVudCI6WyJAdGFpbHdpbmQgYmFzZTtcbkB0YWlsd2luZCBjb21wb25lbnRzO1xuQHRhaWx3aW5kIHV0aWxpdGllcztcblxuKiB7XG4gIGJveC1zaXppbmc6IGJvcmRlci1ib3g7XG4gIG1hcmdpbjogMDtcbiAgcGFkZGluZzogMDtcbn1cblxuYm9keSB7XG4gIGZvbnQtZmFtaWx5OiAnSW50ZXInLCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsICdTZWdvZSBVSScsIFJvYm90bywgc2Fucy1zZXJpZjtcbiAgZm9udC1zaXplOiAxMnB4O1xuICBsaW5lLWhlaWdodDogMS40O1xuICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1maWdtYS1jb2xvci1iZyk7XG4gIGNvbG9yOiB2YXIoLS1maWdtYS1jb2xvci10ZXh0KTtcbn1cblxuOnJvb3Qge1xuICAtLWZpZ21hLWNvbG9yLWJnOiAjMmMyYzJjO1xuICAtLWZpZ21hLWNvbG9yLWJnLXNlY29uZGFyeTogIzM4MzgzODtcbiAgLS1maWdtYS1jb2xvci1iZy10ZXJ0aWFyeTogIzFlMWUxZTtcbiAgLS1maWdtYS1jb2xvci1ib3JkZXI6ICM0YTRhNGE7XG4gIC0tZmlnbWEtY29sb3ItdGV4dDogI2ZmZmZmZjtcbiAgLS1maWdtYS1jb2xvci10ZXh0LXNlY29uZGFyeTogI2IzYjNiMztcbiAgLS1maWdtYS1jb2xvci10ZXh0LXRlcnRpYXJ5OiAjOGM4YzhjO1xuICAtLWZpZ21hLWNvbG9yLWFjY2VudDogIzBkOTlmZjtcbiAgLS1maWdtYS1jb2xvci1hY2NlbnQtaG92ZXI6ICMwYTdmZDQ7XG4gIC0tc2NvcmUtMTogI2YyNDgyMjtcbiAgLS1zY29yZS0yOiAjZmZhNjI5O1xuICAtLXNjb3JlLTM6ICNmZmNkMjk7XG4gIC0tc2NvcmUtNDogIzE0YWU1Yztcbn1cblxuQGxheWVyIGNvbXBvbmVudHMge1xuICAuYnRuLXByaW1hcnkge1xuICAgIEBhcHBseSBiZy1bdmFyKC0tZmlnbWEtY29sb3ItYWNjZW50KV0gdGV4dC13aGl0ZSBweC00IHB5LTIgcm91bmRlZCBmb250LW1lZGl1bTtcbiAgICBAYXBwbHkgaG92ZXI6YmctW3ZhcigtLWZpZ21hLWNvbG9yLWFjY2VudC1ob3ZlcildIHRyYW5zaXRpb24tY29sb3JzO1xuICAgIEBhcHBseSBkaXNhYmxlZDpvcGFjaXR5LTUwIGRpc2FibGVkOmN1cnNvci1ub3QtYWxsb3dlZDtcbiAgfVxuXG4gIC5idG4tc2Vjb25kYXJ5IHtcbiAgICBAYXBwbHkgYmctW3ZhcigtLWZpZ21hLWNvbG9yLWJnLXNlY29uZGFyeSldIHRleHQtd2hpdGUgcHgtMyBweS0xLjUgcm91bmRlZCB0ZXh0LXhzO1xuICAgIEBhcHBseSBob3ZlcjpiZy1bdmFyKC0tZmlnbWEtY29sb3ItYm9yZGVyKV0gdHJhbnNpdGlvbi1jb2xvcnMgYm9yZGVyIGJvcmRlci1bdmFyKC0tZmlnbWEtY29sb3ItYm9yZGVyKV07XG4gIH1cblxuICAuY2FyZCB7XG4gICAgQGFwcGx5IGJnLVt2YXIoLS1maWdtYS1jb2xvci1iZy1zZWNvbmRhcnkpXSByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItW3ZhcigtLWZpZ21hLWNvbG9yLWJvcmRlcildO1xuICB9XG5cbiAgLnNjb3JlLWJhZGdlIHtcbiAgICBAYXBwbHkgaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHctNiBoLTYgcm91bmRlZC1mdWxsIHRleHQteHMgZm9udC1ib2xkIHRleHQtd2hpdGU7XG4gIH1cblxuICAuc2NvcmUtMSB7IGJhY2tncm91bmQtY29sb3I6IHZhcigtLXNjb3JlLTEpOyB9XG4gIC5zY29yZS0yIHsgYmFja2dyb3VuZC1jb2xvcjogdmFyKC0tc2NvcmUtMik7IH1cbiAgLnNjb3JlLTMgeyBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1zY29yZS0zKTsgY29sb3I6ICMxZTFlMWU7IH1cbiAgLnNjb3JlLTQgeyBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1zY29yZS00KTsgfVxuXG4gIC5jb2xsYXBzaWJsZS1oZWFkZXIge1xuICAgIEBhcHBseSBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBjdXJzb3ItcG9pbnRlciBzZWxlY3Qtbm9uZSBweS0yIHB4LTM7XG4gICAgQGFwcGx5IGhvdmVyOmJnLVt2YXIoLS1maWdtYS1jb2xvci1iZy10ZXJ0aWFyeSldIHJvdW5kZWQgdHJhbnNpdGlvbi1jb2xvcnM7XG4gIH1cblxuICAuY2hldnJvbiB7XG4gICAgQGFwcGx5IHctNCBoLTQgdHJhbnNpdGlvbi10cmFuc2Zvcm0gZHVyYXRpb24tMjAwO1xuICB9XG5cbiAgLmNoZXZyb24uZXhwYW5kZWQge1xuICAgIEBhcHBseSByb3RhdGUtOTA7XG4gIH1cblxuICAuZmVhdHVyZS1pdGVtIHtcbiAgICBAYXBwbHkgcGwtOCBweS0xLjUgYm9yZGVyLWwtMiBib3JkZXItW3ZhcigtLWZpZ21hLWNvbG9yLWJvcmRlcildIG1sLTQ7XG4gIH1cblxuICAuY2xpY2thYmxlLXJvdyB7XG4gICAgQGFwcGx5IGN1cnNvci1wb2ludGVyIGhvdmVyOmJnLVt2YXIoLS1maWdtYS1jb2xvci1iZy10ZXJ0aWFyeSldIHJvdW5kZWQgcHgtMiBweS0xIHRyYW5zaXRpb24tY29sb3JzO1xuICB9XG59XG5cbjo6LXdlYmtpdC1zY3JvbGxiYXIge1xuICB3aWR0aDogOHB4O1xufVxuXG46Oi13ZWJraXQtc2Nyb2xsYmFyLXRyYWNrIHtcbiAgYmFja2dyb3VuZDogdmFyKC0tZmlnbWEtY29sb3ItYmcpO1xufVxuXG46Oi13ZWJraXQtc2Nyb2xsYmFyLXRodW1iIHtcbiAgYmFja2dyb3VuZDogdmFyKC0tZmlnbWEtY29sb3ItYm9yZGVyKTtcbiAgYm9yZGVyLXJhZGl1czogNHB4O1xufVxuXG46Oi13ZWJraXQtc2Nyb2xsYmFyLXRodW1iOmhvdmVyIHtcbiAgYmFja2dyb3VuZDogIzVhNWE1YTtcbn1cbiJdLCJuYW1lcyI6W10sInNvdXJjZVJvb3QiOiIifQ==*/

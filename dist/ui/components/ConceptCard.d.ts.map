@@ -1,0 +1,1 @@
+{"version":3,"file":"ConceptCard.d.ts","sourceRoot":"","sources":["../../../src/ui/components/ConceptCard.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,aAAa,CAAC;AAI3C,UAAU,gBAAgB;IACxB,OAAO,EAAE,OAAO,CAAC;IACjB,eAAe,EAAE,CAAC,MAAM,EAAE,MAAM,KAAK,IAAI,CAAC;CAC3C;AAED,wBAAgB,WAAW,CAAC,EAAE,OAAO,EAAE,eAAe,EAAE,EAAE,gBAAgB,2CAiEzE"}

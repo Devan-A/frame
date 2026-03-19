@@ -1,0 +1,1 @@
+{"version":3,"file":"ParticipantRow.d.ts","sourceRoot":"","sources":["../../../src/ui/components/ParticipantRow.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,aAAa,CAAC;AAI/C,UAAU,mBAAmB;IAC3B,WAAW,EAAE,WAAW,CAAC;IACzB,WAAW,EAAE,CAAC,MAAM,EAAE,MAAM,KAAK,IAAI,CAAC;CACvC;AAED,wBAAgB,cAAc,CAAC,EAAE,WAAW,EAAE,WAAW,EAAE,EAAE,mBAAmB,2CAmB/E"}

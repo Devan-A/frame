@@ -1,10 +1,12 @@
-import type { AnalysisResponse, FeatureScoring } from '../types/api';
+import type { AnalysisResponse } from '../types/api';
+import type { ParsedBoard } from '../types';
 /**
- * Mock API response data for development/testing
+ * Mock API response data for development/testing.
  */
 export declare const mockAnalysisResponse: AnalysisResponse;
 /**
- * Generate mock feature scoring data based on parsed board data
+ * Mock parsed board data used when visualising the draw-to-board flow.
+ * Contains 3 concepts × 3 participants × 5 features each.
  */
-export declare function generateMockFeatureScoring(participants: number, featuresPerParticipant: number): FeatureScoring[];
+export declare const mockParsedBoard: ParsedBoard;
 //# sourceMappingURL=mockData.d.ts.map

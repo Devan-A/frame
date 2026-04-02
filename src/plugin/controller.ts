@@ -6,7 +6,7 @@ import type {
   UIToControllerMessage,
 } from '../types';
 import type { AnalysisResponse } from '../types/api';
-import { mockAnalysisResponse, generateMockFeatureScoring } from './mockData';
+import { mockAnalysisResponse, mockParsedBoard } from './mockData';
 
 const CONCEPT_PATTERN = /^concept-(\d+)$/i;
 const PARTICIPANT_PATTERN = /^participant-(\d+)$/i;
@@ -1096,8 +1096,9 @@ figma.ui.onmessage = async (msg: UIToControllerMessage) => {
 
       case 'ANALYZE_BOARD': {
         figma.ui.postMessage({ type: 'ANALYSIS_STARTED' });
-        const parsedBoard = parseBoard();
-        await analyzeAndDraw(parsedBoard);
+        // Use fully mocked board data so drawing can be validated independently
+        // of whatever is currently on the board.
+        await analyzeAndDraw(mockParsedBoard);
         const sectionsUpdated = [
           'highest-scoring-concept-description',
           'table-of-concept-scores',

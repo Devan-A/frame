@@ -622,19 +622,25 @@ function clearSectionStickies(section: SectionNode | FrameNode): void {
   }
 }
 
-const PAD = 24;
-const ROW_H = 36;
-const HEADER_H = 48;
-const COL_GAP = 16;
 const MUTED: RGB = { r: 0.45, g: 0.45, b: 0.45 };
-const DARK: RGB = { r: 0.08, g: 0.08, b: 0.08 };
+const DARK: RGB  = { r: 0.08, g: 0.08, b: 0.08 };
 
 const CRITICALITY_COLORS: Record<string, RGB> = {
   Critical: { r: 0.93, g: 0.26, b: 0.21 },
-  High:     { r: 0.96, g: 0.49, b: 0.0 },
-  Medium:   { r: 0.9,  g: 0.65, b: 0.0 },
+  High:     { r: 0.96, g: 0.49, b: 0.0  },
+  Medium:   { r: 0.9,  g: 0.65, b: 0.0  },
   Low:      { r: 0.2,  g: 0.65, b: 0.32 },
 };
+
+/** Scale a base design value to match the actual container size. */
+function sc(val: number, scale: number): number {
+  return Math.round(val * scale);
+}
+
+/** Compute a scale factor from actual section width vs design reference. */
+function getScale(section: SectionNode | FrameNode, referenceWidth: number): number {
+  return (section as FrameNode).width / referenceWidth;
+}
 
 /**
  * Removes all TEXT and STICKY nodes from a container.
@@ -644,6 +650,19 @@ function clearTextContent(container: SectionNode | FrameNode): void {
   for (const child of (container as FrameNode).findAll(
     (n) => n.type === 'TEXT' || n.type === 'STICKY'
   )) {
+    toRemove.push(child);
+  }
+  for (const node of toRemove) {
+    node.remove();
+  }
+}
+
+/**
+ * Removes ALL children from a container.
+ */
+function clearAllContent(container: SectionNode | FrameNode): void {
+  const toRemove: SceneNode[] = [];
+  for (const child of (container as FrameNode).children) {
     toRemove.push(child);
   }
   for (const node of toRemove) {
@@ -722,266 +741,256 @@ function resizeToFitContent(container: SectionNode | FrameNode): void {
     }
   }
   if (maxRight > 0 || maxBottom > 0) {
-    container.resizeWithoutConstraints(maxRight + PAD, maxBottom + PAD);
+    container.resizeWithoutConstraints(maxRight + 24, maxBottom + 24);
   }
 }
 
 /**
- * Draws the highest-scoring-concept-description section:
- * Bold title at top, description text below it.
+ * Draws the highest-scoring-concept-description section.
+ * All dimensions scale from the section's actual width vs design width 680.
  */
 function drawHighestScoringConceptContent(
   section: SectionNode | FrameNode,
   response: AnalysisResponse
 ): void {
   clearTextContent(section);
-  const w = Math.max((section as FrameNode).width - PAD * 2, 320);
+  const s   = getScale(section, 680);
+  const pad = sc(24, s);
+  const w   = (section as FrameNode).width - pad * 2;
 
   const title = createText(
-    section,
-    response.highest_scoring_concept.name,
-    PAD, PAD,
-    22, true, DARK, w
+    section, response.highest_scoring_concept.name,
+    pad, pad,
+    sc(22, s), true, DARK, w
   );
 
   createText(
-    section,
-    response.highest_scoring_concept.description,
-    PAD, PAD + title.height + 16,
-    13, false, { r: 0.25, g: 0.25, b: 0.25 }, w
+    section, response.highest_scoring_concept.description,
+    pad, pad + title.height + sc(16, s),
+    sc(13, s), false, { r: 0.25, g: 0.25, b: 0.25 }, w
   );
-
-  resizeToFitContent(section);
 }
 
 /**
- * Draws the table-of-concept-scores section:
- * Headers + one row per concept with Rank, Name, Avg Z Score,
- * Disagreement, Consensus Weight, Final Score columns.
+ * Draws the table-of-concept-scores section.
+ * Scales from design width 900.
  */
 function drawConceptScoresTableContent(
   section: SectionNode | FrameNode,
   response: AnalysisResponse
 ): void {
   clearTextContent(section);
+  const s      = getScale(section, 900);
+  const pad    = sc(24, s);
+  const gap    = sc(16, s);
+  const rowH   = sc(48, s);
+  const headH  = sc(56, s);
 
-  const cols: { label: string; width: number }[] = [
-    { label: 'Rank',             width: 44  },
-    { label: 'Concept Name',     width: 170 },
-    { label: 'Avg Z Score',      width: 90  },
-    { label: 'Disagreement',     width: 100 },
-    { label: 'Consensus Weight', width: 130 },
-    { label: 'Final Score',      width: 90  },
+  const colDefs: { label: string; frac: number }[] = [
+    { label: 'Rank',             frac: 0.06 },
+    { label: 'Concept Name',     frac: 0.22 },
+    { label: 'Avg Z Score',      frac: 0.14 },
+    { label: 'Disagreement',     frac: 0.16 },
+    { label: 'Consensus Weight', frac: 0.20 },
+    { label: 'Final Score',      frac: 0.14 },
   ];
 
-  let x = PAD;
-  for (const col of cols) {
-    createText(section, col.label, x, PAD, 11, true, MUTED, col.width);
-    x += col.width + COL_GAP;
+  const totalW   = (section as FrameNode).width - pad * 2 - gap * (colDefs.length - 1);
+  const colWidths = colDefs.map((c) => Math.round(totalW * c.frac));
+
+  let x = pad;
+  for (let j = 0; j < colDefs.length; j++) {
+    createText(section, colDefs[j].label, x, pad, sc(11, s), true, MUTED, colWidths[j]);
+    x += colWidths[j] + gap;
   }
 
   for (let i = 0; i < response.prioritized_concept_list.length; i++) {
-    const c = response.prioritized_concept_list[i];
-    const y = PAD + HEADER_H + i * ROW_H;
-    const isTop = i === 0;
-    const rowColor: RGB = isTop ? { r: 0.07, g: 0.48, b: 0.32 } : DARK;
-    x = PAD;
+    const c      = response.prioritized_concept_list[i];
+    const y      = pad + headH + i * rowH;
+    const isTop  = i === 0;
+    const color: RGB = isTop ? { r: 0.07, g: 0.48, b: 0.32 } : DARK;
 
     const values = [
-      String(c.rank),
-      c.name,
+      String(c.rank), c.name,
       String(c.average_z_score.toFixed(2)),
       String(c.disagreement.toFixed(2)),
       String(c.concensus_weight.toFixed(2)),
       String(c.final_score.toFixed(1)),
     ];
 
-    for (let j = 0; j < cols.length; j++) {
-      createText(section, values[j], x, y, 12, isTop, rowColor, cols[j].width);
-      x += cols[j].width + COL_GAP;
+    x = pad;
+    for (let j = 0; j < colDefs.length; j++) {
+      createText(section, values[j], x, y, sc(12, s), isTop, color, colWidths[j]);
+      x += colWidths[j] + gap;
     }
   }
-
-  resizeToFitContent(section);
 }
 
 /**
- * Draws the titles-for-needs section:
- * Two columns — Need and Need Title — with a header row.
+ * Draws the titles-for-needs section.
+ * Scales from design width 700.
  */
 function drawTitlesForNeedsContent(
   section: SectionNode | FrameNode,
   response: AnalysisResponse
 ): void {
   clearTextContent(section);
+  const s      = getScale(section, 700);
+  const pad    = sc(24, s);
+  const gap    = sc(32, s);
+  const rowH   = sc(44, s);
+  const headH  = sc(56, s);
+  const colW   = Math.round(((section as FrameNode).width - pad * 2 - gap) / 2);
 
-  const needW = 220;
-  const titleW = 220;
-  const needX = PAD;
-  const titleX = PAD + needW + COL_GAP * 2;
+  const needX  = pad;
+  const titleX = pad + colW + gap;
 
-  createText(section, 'Need',       needX,  PAD, 11, true, MUTED, needW);
-  createText(section, 'Need Title', titleX, PAD, 11, true, MUTED, titleW);
+  createText(section, 'Need',       needX,  pad, sc(11, s), true, MUTED, colW);
+  createText(section, 'Need Title', titleX, pad, sc(11, s), true, MUTED, colW);
 
   for (let i = 0; i < response.features_and_themes.length; i++) {
     const item = response.features_and_themes[i];
-    const y = PAD + HEADER_H + i * ROW_H;
-    createText(section, item.theme.need,  needX,  y, 14, false, DARK, needW);
-    createText(section, item.theme.title, titleX, y, 14, true,  DARK, titleW);
+    const y    = pad + headH + i * rowH;
+    createText(section, item.theme.need,  needX,  y, sc(14, s), false, DARK, colW);
+    createText(section, item.theme.title, titleX, y, sc(14, s), true,  DARK, colW);
   }
-
-  resizeToFitContent(section);
 }
 
 /**
- * Draws the all-features section:
- * Three columns — Feature, Mapped Need, Rationale.
+ * Draws the all-features section.
+ * Scales from design width 800.
  */
 function drawAllFeaturesContent(
   section: SectionNode | FrameNode,
   response: AnalysisResponse
 ): void {
   clearTextContent(section);
+  const s      = getScale(section, 800);
+  const pad    = sc(24, s);
+  const gap    = sc(24, s);
+  const rowH   = sc(44, s);
+  const headH  = sc(56, s);
 
-  const featureW   = 180;
-  const needW      = 170;
-  const rationaleW = 220;
-  const featureX   = PAD;
-  const needX      = PAD + featureW + COL_GAP * 2;
-  const rationaleX = needX + needW + COL_GAP * 2;
+  const totalW    = (section as FrameNode).width - pad * 2 - gap * 2;
+  const featureW  = Math.round(totalW * 0.28);
+  const needW     = Math.round(totalW * 0.28);
+  const rationaleW = totalW - featureW - needW;
 
-  createText(section, 'Feature',      featureX,   PAD, 11, true, MUTED, featureW);
-  createText(section, 'Mapped Need',  needX,      PAD, 11, true, MUTED, needW);
-  createText(section, 'Rationale',    rationaleX, PAD, 11, true, MUTED, rationaleW);
+  const featureX   = pad;
+  const needX      = featureX + featureW + gap;
+  const rationaleX = needX + needW + gap;
+
+  createText(section, 'Feature',     featureX,   pad, sc(11, s), true, MUTED, featureW);
+  createText(section, 'Mapped Need', needX,      pad, sc(11, s), true, MUTED, needW);
+  createText(section, 'Rationale',   rationaleX, pad, sc(11, s), true, MUTED, rationaleW);
 
   for (let i = 0; i < response.features_and_themes.length; i++) {
     const item = response.features_and_themes[i];
-    const y = PAD + HEADER_H + i * ROW_H;
-    createText(section, item.feature,       featureX,   y, 12, true,  DARK, featureW);
-    createText(section, item.theme.need,    needX,      y, 12, false, { r: 0.3, g: 0.3, b: 0.3 }, needW);
-    createText(section, item.rationale,     rationaleX, y, 12, false, { r: 0.3, g: 0.3, b: 0.3 }, rationaleW);
+    const y    = pad + headH + i * rowH;
+    const grey: RGB = { r: 0.3, g: 0.3, b: 0.3 };
+    createText(section, item.feature,    featureX,   y, sc(12, s), true,  DARK, featureW);
+    createText(section, item.theme.need, needX,      y, sc(12, s), false, grey, needW);
+    createText(section, item.rationale,  rationaleX, y, sc(12, s), false, grey, rationaleW);
   }
-
-  resizeToFitContent(section);
-}
-
-/**
- * Finds all child frames matching a name (case-insensitive) sorted top-to-bottom by Y.
- */
-function findFramesByNameSortedByY(
-  parent: FrameNode | SectionNode,
-  name: string
-): FrameNode[] {
-  const matches: FrameNode[] = [];
-  for (const child of (parent as FrameNode).children) {
-    if (child.type === 'FRAME' && child.name.toLowerCase().trim() === name.toLowerCase()) {
-      matches.push(child as FrameNode);
-    }
-  }
-  return matches.sort((a, b) => a.y - b.y);
 }
 
 /**
  * Draws the all-features-scoring section.
- *
- * For each participant-X frame that already exists on the board it finds
- * the child frames named "feature-name", "feature-description", and
- * "criticality" (sorted top-to-bottom) and populates them with the
- * participant's actual feature data from the parsed board.
- *
- * If a participant frame doesn't exist yet, one is created along with
- * the necessary child frames.
+ * Clears everything and rebuilds participant frames from scratch.
+ * Scales from design width 1400.
  */
 function drawAllFeaturesScoringContent(
   section: SectionNode | FrameNode,
   parsedBoard: ParsedBoard
 ): void {
-  const critLevels = ['Critical', 'High', 'Medium', 'Low'];
-  const participantW = 480;
-  const participantGap = 24;
-  const nameColW  = 140;
-  const descColW  = 180;
-  const critColW  = 100;
-  const nameColX  = PAD;
-  const descColX  = nameColX + nameColW + COL_GAP;
-  const critColX  = descColX + descColW + COL_GAP;
-  const cellH     = 40;
+  clearAllContent(section);
 
-  let nextParticipantX = PAD;
+  const critLevels = ['Critical', 'High', 'Medium', 'Low'];
+  const s   = getScale(section, 1400);
+  const pad = sc(24, s);
+  const gap = sc(24, s);
+
+  let totalParticipants = 0;
+  for (const concept of parsedBoard.concepts) {
+    totalParticipants += concept.participants.length;
+  }
+  if (totalParticipants === 0) return;
+
+  const sectionW    = (section as FrameNode).width;
+  const participantW = Math.floor((sectionW - pad * 2 - gap * (totalParticipants - 1)) / totalParticipants);
+
+  const innerW  = participantW - pad * 2;
+  const nameW   = Math.round(innerW * 0.32);
+  const descW   = Math.round(innerW * 0.42);
+  const critW   = innerW - nameW - descW - sc(16, s) * 2;
+  const nameX   = pad;
+  const descX   = nameX + nameW + sc(16, s);
+  const critX   = descX + descW + sc(16, s);
+  const cellH   = sc(44, s);
+  const rowGap  = sc(8,  s);
+  const headH   = sc(64, s);
+
+  let nextX = pad;
 
   for (const concept of parsedBoard.concepts) {
     for (const participant of concept.participants) {
-      const participantName = 'participant-' + String(participant.index);
+      const pLabel = 'participant-' + String(participant.index);
 
-      let pFrame = (section as FrameNode).findOne(
-        (n) => (n.type === 'FRAME' || n.type === 'SECTION') &&
-                n.name.toLowerCase().trim() === participantName.toLowerCase()
-      ) as FrameNode | null;
+      const pFrame = figma.createFrame();
+      pFrame.name = pLabel;
+      pFrame.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.98, b: 0.93 } }];
+      section.appendChild(pFrame);
+      pFrame.x = nextX;
+      pFrame.y = pad;
+      pFrame.resizeWithoutConstraints(participantW, 200);
 
-      const isNewFrame = !pFrame;
-
-      if (!pFrame) {
-        pFrame = figma.createFrame();
-        pFrame.name = participantName;
-        pFrame.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.98, b: 0.93 } }];
-        section.appendChild(pFrame);
-        pFrame.x = nextParticipantX;
-        pFrame.y = PAD;
-        pFrame.resizeWithoutConstraints(participantW, 200);
-      }
-
-      clearTextContent(pFrame);
-
-      createText(pFrame, participantName, PAD, PAD, 14, true, DARK);
-
-      createText(pFrame, 'Feature',     nameColX, PAD + 30, 10, true, MUTED, nameColW);
-      createText(pFrame, 'Description', descColX, PAD + 30, 10, true, MUTED, descColW);
-      createText(pFrame, 'Criticality', critColX, PAD + 30, 10, true, MUTED, critColW);
-
-      const nameFrames = findFramesByNameSortedByY(pFrame, 'feature-name');
-      const descFrames = findFramesByNameSortedByY(pFrame, 'feature-description');
-      const critFrames = findFramesByNameSortedByY(pFrame, 'criticality');
+      createText(pFrame, pLabel,         pad, pad,             sc(14, s), true,  DARK);
+      createText(pFrame, 'Feature',      nameX, pad + sc(28, s), sc(10, s), true,  MUTED, nameW);
+      createText(pFrame, 'Description',  descX, pad + sc(28, s), sc(10, s), true,  MUTED, descW);
+      createText(pFrame, 'Criticality',  critX, pad + sc(28, s), sc(10, s), true,  MUTED, critW);
 
       for (let i = 0; i < participant.features.length; i++) {
-        const feature    = participant.features[i];
+        const feature     = participant.features[i];
         const criticality = critLevels[i % critLevels.length];
-        const critColor  = CRITICALITY_COLORS[criticality] || MUTED;
-        const rowY       = PAD + 56 + i * (cellH + 6);
+        const critColor   = CRITICALITY_COLORS[criticality] || MUTED;
+        const bgColor: RGB = {
+          r: critColor.r * 0.12 + 0.88,
+          g: critColor.g * 0.12 + 0.88,
+          b: critColor.b * 0.12 + 0.88,
+        };
+        const rowY = pad + headH + i * (cellH + rowGap);
+        const inPad = sc(6, s);
 
-        if (isNewFrame || i >= nameFrames.length) {
-          const nf = findOrCreateChildFrame(pFrame, 'feature-name', nameColX, rowY, nameColW, cellH);
-          clearTextContent(nf);
-          createText(nf, feature.title, 6, 8, 11, false, DARK, nameColW - 12);
-        } else {
-          clearTextContent(nameFrames[i]);
-          createText(nameFrames[i], feature.title, 6, 8, 11, false, DARK, nameFrames[i].width - 12);
-        }
+        const nf = figma.createFrame();
+        nf.name = 'feature-name';
+        nf.fills = [];
+        pFrame.appendChild(nf);
+        nf.x = nameX;
+        nf.y = rowY;
+        nf.resizeWithoutConstraints(nameW, cellH);
+        createText(nf, feature.title, inPad, inPad, sc(11, s), false, DARK, nameW - inPad * 2);
 
-        if (isNewFrame || i >= descFrames.length) {
-          const df = findOrCreateChildFrame(pFrame, 'feature-description', descColX, rowY, descColW, cellH);
-          clearTextContent(df);
-          createText(df, feature.description, 6, 8, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descColW - 12);
-        } else {
-          clearTextContent(descFrames[i]);
-          createText(descFrames[i], feature.description, 6, 8, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descFrames[i].width - 12);
-        }
+        const df = figma.createFrame();
+        df.name = 'feature-description';
+        df.fills = [];
+        pFrame.appendChild(df);
+        df.x = descX;
+        df.y = rowY;
+        df.resizeWithoutConstraints(descW, cellH);
+        createText(df, feature.description, inPad, inPad, sc(11, s), false, { r: 0.3, g: 0.3, b: 0.3 }, descW - inPad * 2);
 
-        if (isNewFrame || i >= critFrames.length) {
-          const cf = findOrCreateChildFrame(
-            pFrame, 'criticality', critColX, rowY, critColW, cellH,
-            { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 }
-          );
-          clearTextContent(cf);
-          createText(cf, criticality, 6, 8, 11, true, critColor, critColW - 12);
-        } else {
-          critFrames[i].fills = [{ type: 'SOLID', color: { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 } }];
-          clearTextContent(critFrames[i]);
-          createText(critFrames[i], criticality, 6, 8, 11, true, critColor, critFrames[i].width - 12);
-        }
+        const cf = figma.createFrame();
+        cf.name = 'criticality';
+        cf.fills = [{ type: 'SOLID', color: bgColor }];
+        pFrame.appendChild(cf);
+        cf.x = critX;
+        cf.y = rowY;
+        cf.resizeWithoutConstraints(critW, cellH);
+        createText(cf, criticality, inPad, inPad, sc(11, s), true, critColor, critW - inPad * 2);
       }
 
       resizeToFitContent(pFrame);
-      nextParticipantX = pFrame.x + pFrame.width + participantGap;
+      nextX = pFrame.x + pFrame.width + gap;
     }
   }
 

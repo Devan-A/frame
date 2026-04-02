@@ -60,7 +60,8 @@ export interface ParsedBoard {
 export type UIToControllerMessage =
   | { type: 'PARSE_BOARD' }
   | { type: 'CLOSE_PLUGIN' }
-  | { type: 'HIGHLIGHT_NODE'; nodeId: string };
+  | { type: 'HIGHLIGHT_NODE'; nodeId: string }
+  | { type: 'ANALYZE_BOARD' };
 
 /**
  * Message types sent from plugin controller to UI.
@@ -68,4 +69,7 @@ export type UIToControllerMessage =
 export type ControllerToUIMessage =
   | { type: 'BOARD_DATA'; payload: ParsedBoard }
   | { type: 'PARSE_ERROR'; message: string }
-  | { type: 'PARSING_STARTED' };
+  | { type: 'PARSING_STARTED' }
+  | { type: 'ANALYSIS_STARTED' }
+  | { type: 'ANALYSIS_COMPLETE'; sectionsUpdated: string[] }
+  | { type: 'ANALYSIS_ERROR'; message: string };

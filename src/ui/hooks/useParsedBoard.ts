@@ -4,8 +4,11 @@ import type { ParsedBoard, ControllerToUIMessage } from '../../types';
 interface UseParsedBoardReturn {
   data: ParsedBoard | null;
   isLoading: boolean;
+  isAnalyzing: boolean;
   error: string | null;
+  analysisResult: string[] | null;
   parseBoard: () => void;
+  analyzeBoard: () => void;
   highlightNode: (nodeId: string) => void;
 }
 
@@ -15,7 +18,9 @@ interface UseParsedBoardReturn {
 export function useParsedBoard(): UseParsedBoardReturn {
   const [data, setData] = useState<ParsedBoard | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<string[] | null>(null);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<{ pluginMessage: ControllerToUIMessage }>) => {
@@ -38,6 +43,22 @@ export function useParsedBoard(): UseParsedBoardReturn {
           setError(msg.message);
           setIsLoading(false);
           break;
+
+        case 'ANALYSIS_STARTED':
+          setIsAnalyzing(true);
+          setError(null);
+          setAnalysisResult(null);
+          break;
+
+        case 'ANALYSIS_COMPLETE':
+          setIsAnalyzing(false);
+          setAnalysisResult(msg.sectionsUpdated);
+          break;
+
+        case 'ANALYSIS_ERROR':
+          setIsAnalyzing(false);
+          setError(msg.message);
+          break;
       }
     };
 
@@ -51,9 +72,15 @@ export function useParsedBoard(): UseParsedBoardReturn {
     parent.postMessage({ pluginMessage: { type: 'PARSE_BOARD' } }, '*');
   }, []);
 
+  const analyzeBoard = useCallback(() => {
+    setIsAnalyzing(true);
+    setError(null);
+    parent.postMessage({ pluginMessage: { type: 'ANALYZE_BOARD' } }, '*');
+  }, []);
+
   const highlightNode = useCallback((nodeId: string) => {
     parent.postMessage({ pluginMessage: { type: 'HIGHLIGHT_NODE', nodeId } }, '*');
   }, []);
 
-  return { data, isLoading, error, parseBoard, highlightNode };
+  return { data, isLoading, isAnalyzing, error, analysisResult, parseBoard, analyzeBoard, highlightNode };
 }

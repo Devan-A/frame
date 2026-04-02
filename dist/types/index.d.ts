@@ -60,6 +60,8 @@ export type UIToControllerMessage = {
 } | {
     type: 'HIGHLIGHT_NODE';
     nodeId: string;
+} | {
+    type: 'ANALYZE_BOARD';
 };
 /**
  * Message types sent from plugin controller to UI.
@@ -72,5 +74,13 @@ export type ControllerToUIMessage = {
     message: string;
 } | {
     type: 'PARSING_STARTED';
+} | {
+    type: 'ANALYSIS_STARTED';
+} | {
+    type: 'ANALYSIS_COMPLETE';
+    sectionsUpdated: string[];
+} | {
+    type: 'ANALYSIS_ERROR';
+    message: string;
 };
 //# sourceMappingURL=index.d.ts.map

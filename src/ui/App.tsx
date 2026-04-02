@@ -7,7 +7,7 @@ import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import { exportToJSON, exportToCSV } from './utils/export';
 
 export default function App() {
-  const { data, isLoading, error, parseBoard, highlightNode } = useParsedBoard();
+  const { data, isLoading, isAnalyzing, error, analysisResult, parseBoard, analyzeBoard, highlightNode } = useParsedBoard();
 
   const handleExportJSON = () => {
     if (data) {
@@ -31,20 +31,36 @@ export default function App() {
             Concept Board Parser
           </h1>
         </div>
-        <button
-          className="btn-primary w-full flex items-center justify-center gap-2"
-          onClick={parseBoard}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <SpinnerIcon className="w-4 h-4" />
-              Parsing...
-            </>
-          ) : (
-            'Parse Board'
-          )}
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+            onClick={parseBoard}
+            disabled={isLoading || isAnalyzing}
+          >
+            {isLoading ? (
+              <>
+                <SpinnerIcon className="w-4 h-4" />
+                Parsing...
+              </>
+            ) : (
+              'Parse Board'
+            )}
+          </button>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded font-medium transition-colors bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={analyzeBoard}
+            disabled={isLoading || isAnalyzing}
+          >
+            {isAnalyzing ? (
+              <>
+                <SpinnerIcon className="w-4 h-4" />
+                Analyzing...
+              </>
+            ) : (
+              'Analyze & Draw'
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Summary bar */}
@@ -84,6 +100,16 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Analysis Result Banner */}
+      {analysisResult && (
+        <div className="flex-shrink-0 px-4 py-2 bg-green-900/30 border-b border-green-700">
+          <p className="text-xs text-green-300 font-medium">Analysis Complete</p>
+          <p className="text-xs text-green-200 mt-1">
+            Updated {analysisResult.length} sections on the board
+          </p>
         </div>
       )}
 

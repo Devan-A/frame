@@ -5,6 +5,8 @@ import type {
   ParsedBoard,
   UIToControllerMessage,
 } from '../types';
+import type { AnalysisResponse } from '../types/api';
+import { mockAnalysisResponse, generateMockFeatureScoring } from './mockData';
 
 const CONCEPT_PATTERN = /^concept-(\d+)$/i;
 const PARTICIPANT_PATTERN = /^participant-(\d+)$/i;
@@ -460,19 +462,447 @@ function highlightNode(nodeId: string): void {
   }
 }
 
+/**
+ * Section configuration for auto-creation
+ */
+interface SectionConfig {
+  name: string;
+  width: number;
+  height: number;
+  fillColor: { r: number; g: number; b: number };
+}
+
+const SECTION_CONFIGS: Record<string, SectionConfig> = {
+  'highest-scoring-concept-description': {
+    name: 'highest-scoring-concept-description',
+    width: 400,
+    height: 300,
+    fillColor: { r: 0.95, g: 0.95, b: 0.95 },
+  },
+  'table-of-concept-scores': {
+    name: 'table-of-concept-scores',
+    width: 700,
+    height: 400,
+    fillColor: { r: 0.95, g: 0.95, b: 0.95 },
+  },
+  'titles-for-needs': {
+    name: 'titles-for-needs',
+    width: 500,
+    height: 350,
+    fillColor: { r: 0.9, g: 0.95, b: 0.9 },
+  },
+  'all-features': {
+    name: 'all-features',
+    width: 600,
+    height: 350,
+    fillColor: { r: 0.95, g: 0.95, b: 0.95 },
+  },
+  'all-features-scoring': {
+    name: 'all-features-scoring',
+    width: 800,
+    height: 500,
+    fillColor: { r: 0.9, g: 0.98, b: 0.9 },
+  },
+};
+
+let nextSectionX = 0;
+let nextSectionY = 0;
+
+/**
+ * Finds a section on the page by exact name (case-insensitive).
+ * Creates the section if it doesn't exist.
+ */
+function findOrCreateSection(name: string): SectionNode {
+  const normalizedName = name.toLowerCase().trim();
+  const allNodes = figma.currentPage.findAll(() => true);
+  
+  for (const node of allNodes) {
+    if (node.name.toLowerCase().trim() === normalizedName) {
+      if (node.type === 'SECTION') {
+        return node as SectionNode;
+      }
+    }
+  }
+  
+  const config = SECTION_CONFIGS[normalizedName] || {
+    name: name,
+    width: 500,
+    height: 400,
+    fillColor: { r: 0.95, g: 0.95, b: 0.95 },
+  };
+  
+  const section = figma.createSection();
+  section.name = config.name;
+  section.x = nextSectionX;
+  section.y = nextSectionY;
+  section.resizeWithoutConstraints(config.width, config.height);
+  
+  nextSectionX += config.width + 50;
+  
+  return section;
+}
+
+/**
+ * Finds a section on the page by exact name (case-insensitive).
+ */
+function findSectionByName(name: string): SectionNode | FrameNode | null {
+  const normalizedName = name.toLowerCase().trim();
+  const allNodes = figma.currentPage.findAll(() => true);
+  
+  for (const node of allNodes) {
+    if (node.name.toLowerCase().trim() === normalizedName) {
+      if (node.type === 'SECTION' || node.type === 'FRAME') {
+        return node as SectionNode | FrameNode;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Creates a sticky note with specified text and color.
+ */
+function createSticky(
+  text: string,
+  x: number,
+  y: number,
+  color?: string
+): StickyNode {
+  const sticky = figma.createSticky();
+  sticky.x = x;
+  sticky.y = y;
+  sticky.text.characters = text;
+  
+  if (color) {
+    const colorMap: Record<string, StickyNode['authorVisible']> = {};
+    sticky.fills = [{ type: 'SOLID', color: hexToRgb(color) }];
+  }
+  
+  return sticky;
+}
+
+/**
+ * Converts hex color to RGB object.
+ */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (result) {
+    return {
+      r: parseInt(result[1], 16) / 255,
+      g: parseInt(result[2], 16) / 255,
+      b: parseInt(result[3], 16) / 255,
+    };
+  }
+  return { r: 1, g: 1, b: 0.6 };
+}
+
+/**
+ * Clears all stickies from a section.
+ */
+function clearSectionStickies(section: SectionNode | FrameNode): void {
+  const stickies = section.findAll((n) => n.type === 'STICKY');
+  for (const sticky of stickies) {
+    sticky.remove();
+  }
+}
+
+/**
+ * Finds or creates a child sticky by name within a section.
+ */
+function findOrCreateStickyInSection(
+  section: SectionNode | FrameNode,
+  stickyName: string,
+  defaultText: string,
+  offsetX: number,
+  offsetY: number
+): StickyNode {
+  const existing = section.findOne(
+    (n) => n.type === 'STICKY' && n.name.toLowerCase().trim() === stickyName.toLowerCase()
+  );
+  
+  if (existing && existing.type === 'STICKY') {
+    return existing;
+  }
+  
+  const sticky = figma.createSticky();
+  sticky.name = stickyName;
+  sticky.text.characters = defaultText;
+  section.appendChild(sticky);
+  sticky.x = offsetX;
+  sticky.y = offsetY;
+  return sticky;
+}
+
+/**
+ * Updates the highest-scoring-concept-description section.
+ */
+function drawHighestScoringConcept(response: AnalysisResponse): void {
+  const section = findOrCreateSection('highest-scoring-concept-description');
+
+  const titleSticky = findOrCreateStickyInSection(section, 'title-of-concept', '', 20, 80);
+  titleSticky.text.characters = response.highest_scoring_concept.name;
+  
+  const descSticky = findOrCreateStickyInSection(section, 'concept-description', '', 20, 160);
+  descSticky.text.characters = response.highest_scoring_concept.description;
+}
+
+/**
+ * Updates the table-of-concept-scores section with concept rankings.
+ */
+function drawConceptScoresTable(response: AnalysisResponse): void {
+  const section = findOrCreateSection('table-of-concept-scores');
+
+  const rowHeight = 60;
+  const startY = 120;
+  const colWidths = [60, 150, 100, 100, 120, 100];
+  const colStarts = [20, 80, 230, 330, 430, 550];
+
+  for (let i = 0; i < response.prioritized_concept_list.length; i++) {
+    const concept = response.prioritized_concept_list[i];
+    const y = startY + i * rowHeight;
+
+    const rankSticky = findOrCreateStickyInSection(
+      section, `rank-${i + 1}`, String(concept.rank), colStarts[0], y
+    );
+    rankSticky.text.characters = String(concept.rank);
+
+    const nameSticky = findOrCreateStickyInSection(
+      section, `name-${i + 1}`, concept.name, colStarts[1], y
+    );
+    nameSticky.text.characters = concept.name;
+
+    const zScoreSticky = findOrCreateStickyInSection(
+      section, `zscore-${i + 1}`, String(concept.average_z_score), colStarts[2], y
+    );
+    zScoreSticky.text.characters = String(concept.average_z_score.toFixed(2));
+
+    const disagreeSticky = findOrCreateStickyInSection(
+      section, `disagreement-${i + 1}`, String(concept.disagreement), colStarts[3], y
+    );
+    disagreeSticky.text.characters = String(concept.disagreement.toFixed(2));
+
+    const consensusSticky = findOrCreateStickyInSection(
+      section, `consensus-${i + 1}`, String(concept.concensus_weight), colStarts[4], y
+    );
+    consensusSticky.text.characters = String(concept.concensus_weight.toFixed(2));
+
+    const finalSticky = findOrCreateStickyInSection(
+      section, `final-${i + 1}`, String(concept.final_score), colStarts[5], y
+    );
+    finalSticky.text.characters = String(concept.final_score.toFixed(1));
+  }
+}
+
+/**
+ * Updates the titles-for-needs section.
+ */
+function drawTitlesForNeeds(response: AnalysisResponse): void {
+  const section = findOrCreateSection('titles-for-needs');
+
+  const rowHeight = 60;
+  const startY = 100;
+
+  for (let i = 0; i < response.features_and_themes.length; i++) {
+    const item = response.features_and_themes[i];
+    const y = startY + i * rowHeight;
+
+    const needSticky = findOrCreateStickyInSection(
+      section, `need-${i + 1}`, item.theme.need, 20, y
+    );
+    needSticky.text.characters = item.theme.need;
+
+    const titleSticky = findOrCreateStickyInSection(
+      section, `need-title-${i + 1}`, item.theme.title, 250, y
+    );
+    titleSticky.text.characters = item.theme.title;
+  }
+}
+
+/**
+ * Updates the all-features section.
+ */
+function drawAllFeatures(response: AnalysisResponse): void {
+  const section = findOrCreateSection('all-features');
+
+  const rowHeight = 60;
+  const startY = 120;
+
+  for (let i = 0; i < response.features_and_themes.length; i++) {
+    const item = response.features_and_themes[i];
+    const y = startY + i * rowHeight;
+
+    const featureSticky = findOrCreateStickyInSection(
+      section, `feature-${i + 1}`, item.feature, 20, y
+    );
+    featureSticky.text.characters = item.feature;
+
+    const needSticky = findOrCreateStickyInSection(
+      section, `feature-need-${i + 1}`, item.theme.need, 200, y
+    );
+    needSticky.text.characters = item.theme.need;
+
+    const rationaleSticky = findOrCreateStickyInSection(
+      section, `feature-rationale-${i + 1}`, item.rationale, 380, y
+    );
+    rationaleSticky.text.characters = item.rationale;
+  }
+}
+
+/**
+ * Updates the all-features-scoring section with participant feature data.
+ */
+function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
+  const section = findOrCreateSection('all-features-scoring');
+
+  const mockScoring = generateMockFeatureScoring(
+    parsedBoard.totalParticipants || 3,
+    3
+  );
+
+  const colWidth = 140;
+  const rowHeight = 50;
+  const startX = 20;
+  const startY = 100;
+
+  let currentParticipant = '';
+  let participantCol = 0;
+  let featureRow = 0;
+
+  for (const scoring of mockScoring) {
+    if (scoring.participant !== currentParticipant) {
+      currentParticipant = scoring.participant;
+      featureRow = 0;
+
+      const participantSticky = findOrCreateStickyInSection(
+        section,
+        `participant-header-${participantCol}`,
+        scoring.participant,
+        startX + participantCol * colWidth * 3,
+        startY
+      );
+      participantSticky.text.characters = scoring.participant;
+      participantCol++;
+    }
+
+    const col = (participantCol - 1) * 3;
+    const x = startX + col * colWidth;
+    const y = startY + (featureRow + 1) * rowHeight;
+
+    const nameSticky = findOrCreateStickyInSection(
+      section,
+      `scoring-name-${participantCol}-${featureRow}`,
+      scoring.feature_name,
+      x,
+      y
+    );
+    nameSticky.text.characters = scoring.feature_name;
+
+    const descSticky = findOrCreateStickyInSection(
+      section,
+      `scoring-desc-${participantCol}-${featureRow}`,
+      scoring.feature_description,
+      x + colWidth,
+      y
+    );
+    descSticky.text.characters = scoring.feature_description;
+
+    const critSticky = findOrCreateStickyInSection(
+      section,
+      `scoring-crit-${participantCol}-${featureRow}`,
+      scoring.criticality,
+      x + colWidth * 2,
+      y
+    );
+    critSticky.text.characters = scoring.criticality;
+
+    featureRow++;
+  }
+}
+
+/**
+ * Main function to analyze board and draw results.
+ */
+/**
+ * Calculates the starting position for new sections based on existing content.
+ * Places new sections below all existing content to avoid overlap.
+ */
+function calculateNewSectionStartPosition(): { x: number; y: number } {
+  const allNodes = figma.currentPage.findAll(() => true);
+  let maxY = 0;
+  let minX = Infinity;
+  
+  for (const node of allNodes) {
+    if ('x' in node && 'y' in node && 'width' in node && 'height' in node) {
+      const sceneNode = node as SceneNode & { width: number; height: number };
+      const nodeBottom = sceneNode.y + sceneNode.height;
+      if (nodeBottom > maxY) maxY = nodeBottom;
+      if (sceneNode.x < minX) minX = sceneNode.x;
+    }
+  }
+  
+  if (minX === Infinity) minX = 0;
+  
+  return { x: minX, y: maxY + 200 };
+}
+
+/**
+ * Loads required fonts for text operations.
+ */
+async function loadFonts(): Promise<void> {
+  await figma.loadFontAsync({ family: 'Inter', style: 'Medium' });
+  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+  await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
+}
+
+/**
+ * Main function to analyze board and draw results.
+ */
+async function analyzeAndDraw(parsedBoard: ParsedBoard): Promise<AnalysisResponse> {
+  await loadFonts();
+  
+  const response = mockAnalysisResponse;
+  
+  const startPos = calculateNewSectionStartPosition();
+  nextSectionX = startPos.x;
+  nextSectionY = startPos.y;
+  
+  drawHighestScoringConcept(response);
+  drawConceptScoresTable(response);
+  drawTitlesForNeeds(response);
+  drawAllFeatures(response);
+  drawAllFeaturesScoring(parsedBoard);
+  
+  return response;
+}
+
 figma.showUI(__html__, {
   width: 360,
   height: 600,
   themeColors: true,
 });
 
-figma.ui.onmessage = (msg: UIToControllerMessage) => {
+figma.ui.onmessage = async (msg: UIToControllerMessage) => {
   try {
     switch (msg.type) {
       case 'PARSE_BOARD': {
         figma.ui.postMessage({ type: 'PARSING_STARTED' });
         const parsedBoard = parseBoard();
         figma.ui.postMessage({ type: 'BOARD_DATA', payload: parsedBoard });
+        break;
+      }
+
+      case 'ANALYZE_BOARD': {
+        figma.ui.postMessage({ type: 'ANALYSIS_STARTED' });
+        const parsedBoard = parseBoard();
+        await analyzeAndDraw(parsedBoard);
+        const sectionsUpdated = [
+          'highest-scoring-concept-description',
+          'table-of-concept-scores',
+          'titles-for-needs',
+          'all-features',
+          'all-features-scoring',
+        ];
+        figma.ui.postMessage({ type: 'ANALYSIS_COMPLETE', sectionsUpdated });
         break;
       }
 

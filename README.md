@@ -1,6 +1,6 @@
 # Concept Board Parser - FigJam Plugin
 
-A FigJam plugin that reads a structured FigJam board, parses its hierarchical content using a strict naming convention, and presents the extracted data in a clean, interactive UI panel.
+A FigJam plugin that reads a structured FigJam board, parses its hierarchical content using a strict naming convention, analyzes the data, and draws results back to designated sections on the board.
 
 ## Features
 
@@ -10,6 +10,7 @@ A FigJam plugin that reads a structured FigJam board, parses its hierarchical co
 - **Canvas Highlighting**: Click any concept or participant to highlight it on the canvas
 - **Export Options**: Download parsed data as JSON or CSV
 - **Collapsible Sections**: Expandable concept cards for better organization
+- **Analyze & Draw**: Sends data to API and draws results back to the board (mock data for now)
 
 ## Board Naming Convention
 
@@ -100,6 +101,35 @@ This will rebuild automatically when you make changes.
 | 3     | Yellow |
 | 4     | Green  |
 | N/A   | Gray   |
+
+## Analyze & Draw Feature
+
+The "Analyze & Draw" button sends the parsed board data to an API (currently uses mock data) and draws the results to these sections on your board:
+
+### Required Output Sections
+
+Create these sections on your FigJam board for the analysis results:
+
+| Section Name | Content |
+|-------------|---------|
+| `highest-scoring-concept-description` | Title and description of the winning concept |
+| `table-of-concept-scores` | Ranked table with: Rank, Name, Z-Score, Disagreement, Consensus Weight, Final Score |
+| `titles-for-needs` | Mapping of needs to theme titles |
+| `all-features` | List of features with needs and rationale |
+| `all-features-scoring` | Grid of participants with feature names, descriptions, and criticality |
+
+### API Response Structure (Mock Data)
+
+```typescript
+interface AnalysisResponse {
+  prioritized_concept_list: ConceptScore[];
+  highest_scoring_concept: Concept;
+  insights: Insight[];
+  features_and_themes: FeatureTheme[];
+}
+```
+
+When the real API is ready, update `src/plugin/controller.ts` to replace the mock data call with actual API integration.
 
 ## License
 

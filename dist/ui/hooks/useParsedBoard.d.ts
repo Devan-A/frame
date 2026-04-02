@@ -2,8 +2,11 @@ import type { ParsedBoard } from '../../types';
 interface UseParsedBoardReturn {
     data: ParsedBoard | null;
     isLoading: boolean;
+    isAnalyzing: boolean;
     error: string | null;
+    analysisResult: string[] | null;
     parseBoard: () => void;
+    analyzeBoard: () => void;
     highlightNode: (nodeId: string) => void;
 }
 /**

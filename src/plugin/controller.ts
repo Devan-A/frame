@@ -475,32 +475,32 @@ interface SectionConfig {
 const SECTION_CONFIGS: Record<string, SectionConfig> = {
   'highest-scoring-concept-description': {
     name: 'highest-scoring-concept-description',
-    width: 400,
+    width: 680,
     height: 300,
     fillColor: { r: 0.95, g: 0.95, b: 0.95 },
   },
   'table-of-concept-scores': {
     name: 'table-of-concept-scores',
-    width: 700,
+    width: 900,
     height: 400,
     fillColor: { r: 0.95, g: 0.95, b: 0.95 },
   },
   'titles-for-needs': {
     name: 'titles-for-needs',
-    width: 500,
-    height: 350,
+    width: 700,
+    height: 400,
     fillColor: { r: 0.9, g: 0.95, b: 0.9 },
   },
   'all-features': {
     name: 'all-features',
-    width: 600,
-    height: 350,
+    width: 800,
+    height: 400,
     fillColor: { r: 0.95, g: 0.95, b: 0.95 },
   },
   'all-features-scoring': {
     name: 'all-features-scoring',
-    width: 800,
-    height: 500,
+    width: 1400,
+    height: 600,
     fillColor: { r: 0.9, g: 0.98, b: 0.9 },
   },
 };
@@ -866,25 +866,46 @@ function drawAllFeaturesContent(
 }
 
 /**
+ * Finds all child frames matching a name (case-insensitive) sorted top-to-bottom by Y.
+ */
+function findFramesByNameSortedByY(
+  parent: FrameNode | SectionNode,
+  name: string
+): FrameNode[] {
+  const matches: FrameNode[] = [];
+  for (const child of (parent as FrameNode).children) {
+    if (child.type === 'FRAME' && child.name.toLowerCase().trim() === name.toLowerCase()) {
+      matches.push(child as FrameNode);
+    }
+  }
+  return matches.sort((a, b) => a.y - b.y);
+}
+
+/**
  * Draws the all-features-scoring section.
- * Finds (or creates) participant-X frames, then within each creates
- * feature-{n}-name, feature-{n}-description, feature-{n}-criticality
- * child frames populated with the participant's actual feature data.
+ *
+ * For each participant-X frame that already exists on the board it finds
+ * the child frames named "feature-name", "feature-description", and
+ * "criticality" (sorted top-to-bottom) and populates them with the
+ * participant's actual feature data from the parsed board.
+ *
+ * If a participant frame doesn't exist yet, one is created along with
+ * the necessary child frames.
  */
 function drawAllFeaturesScoringContent(
   section: SectionNode | FrameNode,
   parsedBoard: ParsedBoard
 ): void {
   const critLevels = ['Critical', 'High', 'Medium', 'Low'];
-  const participantW = 420;
+  const participantW = 480;
   const participantGap = 24;
-
-  const nameColW = 130;
-  const descColW = 160;
-  const critColW = 90;
-  const nameColX = PAD;
-  const descColX = nameColX + nameColW + COL_GAP;
-  const critColX = descColX + descColW + COL_GAP;
+  const nameColW  = 140;
+  const descColW  = 180;
+  const critColW  = 100;
+  const nameColX  = PAD;
+  const descColX  = nameColX + nameColW + COL_GAP;
+  const critColX  = descColX + descColW + COL_GAP;
+  const cellH     = 40;
 
   let nextParticipantX = PAD;
 
@@ -892,60 +913,75 @@ function drawAllFeaturesScoringContent(
     for (const participant of concept.participants) {
       const participantName = 'participant-' + String(participant.index);
 
-      let participantFrame = (section as FrameNode).findOne(
+      let pFrame = (section as FrameNode).findOne(
         (n) => (n.type === 'FRAME' || n.type === 'SECTION') &&
-                n.name.toLowerCase() === participantName.toLowerCase()
+                n.name.toLowerCase().trim() === participantName.toLowerCase()
       ) as FrameNode | null;
 
-      if (!participantFrame) {
-        participantFrame = figma.createFrame();
-        participantFrame.name = participantName;
-        participantFrame.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.98, b: 0.93 } }];
-        section.appendChild(participantFrame);
-        participantFrame.x = nextParticipantX;
-        participantFrame.y = PAD;
-        participantFrame.resizeWithoutConstraints(participantW, 200);
+      const isNewFrame = !pFrame;
+
+      if (!pFrame) {
+        pFrame = figma.createFrame();
+        pFrame.name = participantName;
+        pFrame.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.98, b: 0.93 } }];
+        section.appendChild(pFrame);
+        pFrame.x = nextParticipantX;
+        pFrame.y = PAD;
+        pFrame.resizeWithoutConstraints(participantW, 200);
       }
 
-      clearTextContent(participantFrame);
+      clearTextContent(pFrame);
 
-      createText(participantFrame, participantName, PAD, PAD, 14, true, DARK);
+      createText(pFrame, participantName, PAD, PAD, 14, true, DARK);
 
-      createText(participantFrame, 'Feature',     nameColX, PAD + 32, 10, true, MUTED, nameColW);
-      createText(participantFrame, 'Description', descColX, PAD + 32, 10, true, MUTED, descColW);
-      createText(participantFrame, 'Criticality', critColX, PAD + 32, 10, true, MUTED, critColW);
+      createText(pFrame, 'Feature',     nameColX, PAD + 30, 10, true, MUTED, nameColW);
+      createText(pFrame, 'Description', descColX, PAD + 30, 10, true, MUTED, descColW);
+      createText(pFrame, 'Criticality', critColX, PAD + 30, 10, true, MUTED, critColW);
+
+      const nameFrames = findFramesByNameSortedByY(pFrame, 'feature-name');
+      const descFrames = findFramesByNameSortedByY(pFrame, 'feature-description');
+      const critFrames = findFramesByNameSortedByY(pFrame, 'criticality');
 
       for (let i = 0; i < participant.features.length; i++) {
-        const feature = participant.features[i];
-        const rowY = PAD + 56 + i * (ROW_H + 4);
+        const feature    = participant.features[i];
         const criticality = critLevels[i % critLevels.length];
-        const critColor = CRITICALITY_COLORS[criticality] || MUTED;
+        const critColor  = CRITICALITY_COLORS[criticality] || MUTED;
+        const rowY       = PAD + 56 + i * (cellH + 6);
 
-        const nameFrame = findOrCreateChildFrame(
-          participantFrame, 'feature-' + String(i + 1) + '-name',
-          nameColX, rowY, nameColW, ROW_H
-        );
-        clearTextContent(nameFrame);
-        createText(nameFrame, feature.title, 6, 6, 11, false, DARK, nameColW - 12);
+        if (isNewFrame || i >= nameFrames.length) {
+          const nf = findOrCreateChildFrame(pFrame, 'feature-name', nameColX, rowY, nameColW, cellH);
+          clearTextContent(nf);
+          createText(nf, feature.title, 6, 8, 11, false, DARK, nameColW - 12);
+        } else {
+          clearTextContent(nameFrames[i]);
+          createText(nameFrames[i], feature.title, 6, 8, 11, false, DARK, nameFrames[i].width - 12);
+        }
 
-        const descFrame = findOrCreateChildFrame(
-          participantFrame, 'feature-' + String(i + 1) + '-description',
-          descColX, rowY, descColW, ROW_H
-        );
-        clearTextContent(descFrame);
-        createText(descFrame, feature.description, 6, 6, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descColW - 12);
+        if (isNewFrame || i >= descFrames.length) {
+          const df = findOrCreateChildFrame(pFrame, 'feature-description', descColX, rowY, descColW, cellH);
+          clearTextContent(df);
+          createText(df, feature.description, 6, 8, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descColW - 12);
+        } else {
+          clearTextContent(descFrames[i]);
+          createText(descFrames[i], feature.description, 6, 8, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descFrames[i].width - 12);
+        }
 
-        const critFrame = findOrCreateChildFrame(
-          participantFrame, 'feature-' + String(i + 1) + '-criticality',
-          critColX, rowY, critColW, ROW_H,
-          { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 }
-        );
-        clearTextContent(critFrame);
-        createText(critFrame, criticality, 6, 6, 11, true, critColor, critColW - 12);
+        if (isNewFrame || i >= critFrames.length) {
+          const cf = findOrCreateChildFrame(
+            pFrame, 'criticality', critColX, rowY, critColW, cellH,
+            { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 }
+          );
+          clearTextContent(cf);
+          createText(cf, criticality, 6, 8, 11, true, critColor, critColW - 12);
+        } else {
+          critFrames[i].fills = [{ type: 'SOLID', color: { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 } }];
+          clearTextContent(critFrames[i]);
+          createText(critFrames[i], criticality, 6, 8, 11, true, critColor, critFrames[i].width - 12);
+        }
       }
 
-      resizeToFitContent(participantFrame);
-      nextParticipantX = participantFrame.x + participantFrame.width + participantGap;
+      resizeToFitContent(pFrame);
+      nextParticipantX = pFrame.x + pFrame.width + participantGap;
     }
   }
 

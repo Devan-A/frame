@@ -509,17 +509,25 @@ let nextSectionX = 0;
 let nextSectionY = 0;
 
 /**
- * Finds a section on the page by exact name (case-insensitive).
- * Creates the section if it doesn't exist.
+ * Checks if we're running in FigJam.
  */
-function findOrCreateSection(name: string): SectionNode {
+function isFigJam(): boolean {
+  return figma.editorType === 'figjam';
+}
+
+/**
+ * Finds a section/frame on the page by exact name (case-insensitive).
+ * Creates the section/frame if it doesn't exist.
+ * Uses Section in FigJam, Frame in Figma.
+ */
+function findOrCreateSection(name: string): SectionNode | FrameNode {
   const normalizedName = name.toLowerCase().trim();
   const allNodes = figma.currentPage.findAll(() => true);
   
   for (const node of allNodes) {
     if (node.name.toLowerCase().trim() === normalizedName) {
-      if (node.type === 'SECTION') {
-        return node as SectionNode;
+      if (node.type === 'SECTION' || node.type === 'FRAME') {
+        return node as SectionNode | FrameNode;
       }
     }
   }
@@ -531,15 +539,23 @@ function findOrCreateSection(name: string): SectionNode {
     fillColor: { r: 0.95, g: 0.95, b: 0.95 },
   };
   
-  const section = figma.createSection();
-  section.name = config.name;
-  section.x = nextSectionX;
-  section.y = nextSectionY;
-  section.resizeWithoutConstraints(config.width, config.height);
+  let container: SectionNode | FrameNode;
+  
+  if (isFigJam()) {
+    container = figma.createSection();
+  } else {
+    container = figma.createFrame();
+    container.fills = [{ type: 'SOLID', color: config.fillColor }];
+  }
+  
+  container.name = config.name;
+  container.x = nextSectionX;
+  container.y = nextSectionY;
+  container.resizeWithoutConstraints(config.width, config.height);
   
   nextSectionX += config.width + 50;
   
-  return section;
+  return container;
 }
 
 /**
@@ -607,7 +623,19 @@ function clearSectionStickies(section: SectionNode | FrameNode): void {
 }
 
 /**
- * Finds or creates a child sticky by name within a section.
+ * Sets text content on a Sticky or Text node.
+ */
+function setNodeText(node: StickyNode | TextNode, text: string): void {
+  if (node.type === 'STICKY') {
+    node.text.characters = text;
+  } else {
+    node.characters = text;
+  }
+}
+
+/**
+ * Finds or creates a child sticky/text node by name within a section.
+ * Uses Sticky in FigJam, Text in Figma.
  */
 function findOrCreateStickyInSection(
   section: SectionNode | FrameNode,
@@ -615,22 +643,34 @@ function findOrCreateStickyInSection(
   defaultText: string,
   offsetX: number,
   offsetY: number
-): StickyNode {
+): StickyNode | TextNode {
   const existing = section.findOne(
-    (n) => n.type === 'STICKY' && n.name.toLowerCase().trim() === stickyName.toLowerCase()
+    (n) => (n.type === 'STICKY' || n.type === 'TEXT') && n.name.toLowerCase().trim() === stickyName.toLowerCase()
   );
   
-  if (existing && existing.type === 'STICKY') {
-    return existing;
+  if (existing && (existing.type === 'STICKY' || existing.type === 'TEXT')) {
+    return existing as StickyNode | TextNode;
   }
   
-  const sticky = figma.createSticky();
-  sticky.name = stickyName;
-  sticky.text.characters = defaultText;
-  section.appendChild(sticky);
-  sticky.x = offsetX;
-  sticky.y = offsetY;
-  return sticky;
+  if (isFigJam()) {
+    const sticky = figma.createSticky();
+    sticky.name = stickyName;
+    sticky.text.characters = defaultText;
+    section.appendChild(sticky);
+    sticky.x = offsetX;
+    sticky.y = offsetY;
+    return sticky;
+  } else {
+    const text = figma.createText();
+    text.name = stickyName;
+    text.characters = defaultText;
+    text.fontSize = 12;
+    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+    section.appendChild(text);
+    text.x = offsetX;
+    text.y = offsetY;
+    return text;
+  }
 }
 
 /**
@@ -640,10 +680,10 @@ function drawHighestScoringConcept(response: AnalysisResponse): void {
   const section = findOrCreateSection('highest-scoring-concept-description');
 
   const titleSticky = findOrCreateStickyInSection(section, 'title-of-concept', '', 20, 80);
-  titleSticky.text.characters = response.highest_scoring_concept.name;
+  setNodeText(titleSticky, response.highest_scoring_concept.name);
   
   const descSticky = findOrCreateStickyInSection(section, 'concept-description', '', 20, 160);
-  descSticky.text.characters = response.highest_scoring_concept.description;
+  setNodeText(descSticky, response.highest_scoring_concept.description);
 }
 
 /**
@@ -664,32 +704,32 @@ function drawConceptScoresTable(response: AnalysisResponse): void {
     const rankSticky = findOrCreateStickyInSection(
       section, `rank-${i + 1}`, String(concept.rank), colStarts[0], y
     );
-    rankSticky.text.characters = String(concept.rank);
+    setNodeText(rankSticky, String(concept.rank));
 
     const nameSticky = findOrCreateStickyInSection(
       section, `name-${i + 1}`, concept.name, colStarts[1], y
     );
-    nameSticky.text.characters = concept.name;
+    setNodeText(nameSticky, concept.name);
 
     const zScoreSticky = findOrCreateStickyInSection(
       section, `zscore-${i + 1}`, String(concept.average_z_score), colStarts[2], y
     );
-    zScoreSticky.text.characters = String(concept.average_z_score.toFixed(2));
+    setNodeText(zScoreSticky, String(concept.average_z_score.toFixed(2)));
 
     const disagreeSticky = findOrCreateStickyInSection(
       section, `disagreement-${i + 1}`, String(concept.disagreement), colStarts[3], y
     );
-    disagreeSticky.text.characters = String(concept.disagreement.toFixed(2));
+    setNodeText(disagreeSticky, String(concept.disagreement.toFixed(2)));
 
     const consensusSticky = findOrCreateStickyInSection(
       section, `consensus-${i + 1}`, String(concept.concensus_weight), colStarts[4], y
     );
-    consensusSticky.text.characters = String(concept.concensus_weight.toFixed(2));
+    setNodeText(consensusSticky, String(concept.concensus_weight.toFixed(2)));
 
     const finalSticky = findOrCreateStickyInSection(
       section, `final-${i + 1}`, String(concept.final_score), colStarts[5], y
     );
-    finalSticky.text.characters = String(concept.final_score.toFixed(1));
+    setNodeText(finalSticky, String(concept.final_score.toFixed(1)));
   }
 }
 
@@ -709,12 +749,12 @@ function drawTitlesForNeeds(response: AnalysisResponse): void {
     const needSticky = findOrCreateStickyInSection(
       section, `need-${i + 1}`, item.theme.need, 20, y
     );
-    needSticky.text.characters = item.theme.need;
+    setNodeText(needSticky, item.theme.need);
 
     const titleSticky = findOrCreateStickyInSection(
       section, `need-title-${i + 1}`, item.theme.title, 250, y
     );
-    titleSticky.text.characters = item.theme.title;
+    setNodeText(titleSticky, item.theme.title);
   }
 }
 
@@ -734,17 +774,17 @@ function drawAllFeatures(response: AnalysisResponse): void {
     const featureSticky = findOrCreateStickyInSection(
       section, `feature-${i + 1}`, item.feature, 20, y
     );
-    featureSticky.text.characters = item.feature;
+    setNodeText(featureSticky, item.feature);
 
     const needSticky = findOrCreateStickyInSection(
       section, `feature-need-${i + 1}`, item.theme.need, 200, y
     );
-    needSticky.text.characters = item.theme.need;
+    setNodeText(needSticky, item.theme.need);
 
     const rationaleSticky = findOrCreateStickyInSection(
       section, `feature-rationale-${i + 1}`, item.rationale, 380, y
     );
-    rationaleSticky.text.characters = item.rationale;
+    setNodeText(rationaleSticky, item.rationale);
   }
 }
 
@@ -780,7 +820,7 @@ function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
         startX + participantCol * colWidth * 3,
         startY
       );
-      participantSticky.text.characters = scoring.participant;
+      setNodeText(participantSticky, scoring.participant);
       participantCol++;
     }
 
@@ -795,7 +835,7 @@ function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
       x,
       y
     );
-    nameSticky.text.characters = scoring.feature_name;
+    setNodeText(nameSticky, scoring.feature_name);
 
     const descSticky = findOrCreateStickyInSection(
       section,
@@ -804,7 +844,7 @@ function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
       x + colWidth,
       y
     );
-    descSticky.text.characters = scoring.feature_description;
+    setNodeText(descSticky, scoring.feature_description);
 
     const critSticky = findOrCreateStickyInSection(
       section,
@@ -813,7 +853,7 @@ function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
       x + colWidth * 2,
       y
     );
-    critSticky.text.characters = scoring.criticality;
+    setNodeText(critSticky, scoring.criticality);
 
     featureRow++;
   }

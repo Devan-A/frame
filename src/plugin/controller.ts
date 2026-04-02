@@ -622,235 +622,334 @@ function clearSectionStickies(section: SectionNode | FrameNode): void {
   }
 }
 
+const PAD = 24;
+const ROW_H = 36;
+const HEADER_H = 48;
+const COL_GAP = 16;
+const MUTED: RGB = { r: 0.45, g: 0.45, b: 0.45 };
+const DARK: RGB = { r: 0.08, g: 0.08, b: 0.08 };
+
+const CRITICALITY_COLORS: Record<string, RGB> = {
+  Critical: { r: 0.93, g: 0.26, b: 0.21 },
+  High:     { r: 0.96, g: 0.49, b: 0.0 },
+  Medium:   { r: 0.9,  g: 0.65, b: 0.0 },
+  Low:      { r: 0.2,  g: 0.65, b: 0.32 },
+};
+
 /**
- * Sets text content on a Sticky or Text node.
+ * Removes all TEXT and STICKY nodes from a container.
  */
-function setNodeText(node: StickyNode | TextNode, text: string): void {
-  if (node.type === 'STICKY') {
-    node.text.characters = text;
-  } else {
-    node.characters = text;
+function clearTextContent(container: SectionNode | FrameNode): void {
+  const toRemove: SceneNode[] = [];
+  for (const child of (container as FrameNode).findAll(
+    (n) => n.type === 'TEXT' || n.type === 'STICKY'
+  )) {
+    toRemove.push(child);
+  }
+  for (const node of toRemove) {
+    node.remove();
   }
 }
 
 /**
- * Finds or creates a child sticky/text node by name within a section.
- * Uses Sticky in FigJam, Text in Figma.
+ * Creates a styled text node appended to a parent.
  */
-function findOrCreateStickyInSection(
-  section: SectionNode | FrameNode,
-  stickyName: string,
-  defaultText: string,
-  offsetX: number,
-  offsetY: number
-): StickyNode | TextNode {
-  const existing = section.findOne(
-    (n) => (n.type === 'STICKY' || n.type === 'TEXT') && n.name.toLowerCase().trim() === stickyName.toLowerCase()
+function createText(
+  parent: SectionNode | FrameNode,
+  content: string,
+  x: number,
+  y: number,
+  size: number = 12,
+  bold: boolean = false,
+  color: RGB = DARK,
+  maxWidth?: number
+): TextNode {
+  const node = figma.createText();
+  parent.appendChild(node);
+  node.fontName = { family: 'Inter', style: bold ? 'Bold' : 'Regular' };
+  node.fontSize = size;
+  if (maxWidth) {
+    node.textAutoResize = 'HEIGHT';
+    node.resize(maxWidth, 20);
+  }
+  node.characters = content;
+  node.fills = [{ type: 'SOLID', color }];
+  node.x = x;
+  node.y = y;
+  return node;
+}
+
+/**
+ * Finds or creates a child FrameNode within a parent by name.
+ */
+function findOrCreateChildFrame(
+  parent: FrameNode | SectionNode,
+  name: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  fillColor?: RGB
+): FrameNode {
+  const existing = (parent as FrameNode).findOne(
+    (n) => n.type === 'FRAME' && n.name.toLowerCase() === name.toLowerCase()
   );
-  
-  if (existing && (existing.type === 'STICKY' || existing.type === 'TEXT')) {
-    return existing as StickyNode | TextNode;
+  if (existing && existing.type === 'FRAME') {
+    return existing as FrameNode;
   }
-  
-  if (isFigJam()) {
-    const sticky = figma.createSticky();
-    sticky.name = stickyName;
-    sticky.text.characters = defaultText;
-    section.appendChild(sticky);
-    sticky.x = offsetX;
-    sticky.y = offsetY;
-    return sticky;
-  } else {
-    const text = figma.createText();
-    text.name = stickyName;
-    text.characters = defaultText;
-    text.fontSize = 12;
-    text.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
-    section.appendChild(text);
-    text.x = offsetX;
-    text.y = offsetY;
-    return text;
+  const frame = figma.createFrame();
+  frame.name = name;
+  frame.fills = fillColor ? [{ type: 'SOLID', color: fillColor }] : [];
+  parent.appendChild(frame);
+  frame.x = x;
+  frame.y = y;
+  frame.resizeWithoutConstraints(width, height);
+  return frame;
+}
+
+/**
+ * Resizes a section/frame to tightly fit all its children.
+ */
+function resizeToFitContent(container: SectionNode | FrameNode): void {
+  let maxBottom = 0;
+  let maxRight = 0;
+  for (const child of (container as FrameNode).children) {
+    if ('x' in child && 'y' in child && 'width' in child && 'height' in child) {
+      const right = child.x + (child as FrameNode).width;
+      const bottom = child.y + (child as FrameNode).height;
+      if (right > maxRight) maxRight = right;
+      if (bottom > maxBottom) maxBottom = bottom;
+    }
+  }
+  if (maxRight > 0 || maxBottom > 0) {
+    container.resizeWithoutConstraints(maxRight + PAD, maxBottom + PAD);
   }
 }
 
 /**
- * Updates the highest-scoring-concept-description section.
+ * Draws the highest-scoring-concept-description section:
+ * Bold title at top, description text below it.
  */
-function drawHighestScoringConceptContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
-  const titleSticky = findOrCreateStickyInSection(section, 'title-of-concept', '', 20, 80);
-  setNodeText(titleSticky, response.highest_scoring_concept.name);
-  
-  const descSticky = findOrCreateStickyInSection(section, 'concept-description', '', 20, 160);
-  setNodeText(descSticky, response.highest_scoring_concept.description);
+function drawHighestScoringConceptContent(
+  section: SectionNode | FrameNode,
+  response: AnalysisResponse
+): void {
+  clearTextContent(section);
+  const w = Math.max((section as FrameNode).width - PAD * 2, 320);
+
+  const title = createText(
+    section,
+    response.highest_scoring_concept.name,
+    PAD, PAD,
+    22, true, DARK, w
+  );
+
+  createText(
+    section,
+    response.highest_scoring_concept.description,
+    PAD, PAD + title.height + 16,
+    13, false, { r: 0.25, g: 0.25, b: 0.25 }, w
+  );
+
+  resizeToFitContent(section);
 }
 
 /**
- * Updates the table-of-concept-scores section with concept rankings.
+ * Draws the table-of-concept-scores section:
+ * Headers + one row per concept with Rank, Name, Avg Z Score,
+ * Disagreement, Consensus Weight, Final Score columns.
  */
-function drawConceptScoresTableContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
+function drawConceptScoresTableContent(
+  section: SectionNode | FrameNode,
+  response: AnalysisResponse
+): void {
+  clearTextContent(section);
 
-  const rowHeight = 60;
-  const startY = 120;
-  const colWidths = [60, 150, 100, 100, 120, 100];
-  const colStarts = [20, 80, 230, 330, 430, 550];
+  const cols: { label: string; width: number }[] = [
+    { label: 'Rank',             width: 44  },
+    { label: 'Concept Name',     width: 170 },
+    { label: 'Avg Z Score',      width: 90  },
+    { label: 'Disagreement',     width: 100 },
+    { label: 'Consensus Weight', width: 130 },
+    { label: 'Final Score',      width: 90  },
+  ];
+
+  let x = PAD;
+  for (const col of cols) {
+    createText(section, col.label, x, PAD, 11, true, MUTED, col.width);
+    x += col.width + COL_GAP;
+  }
 
   for (let i = 0; i < response.prioritized_concept_list.length; i++) {
-    const concept = response.prioritized_concept_list[i];
-    const y = startY + i * rowHeight;
+    const c = response.prioritized_concept_list[i];
+    const y = PAD + HEADER_H + i * ROW_H;
+    const isTop = i === 0;
+    const rowColor: RGB = isTop ? { r: 0.07, g: 0.48, b: 0.32 } : DARK;
+    x = PAD;
 
-    const rankSticky = findOrCreateStickyInSection(
-      section, `rank-${i + 1}`, String(concept.rank), colStarts[0], y
-    );
-    setNodeText(rankSticky, String(concept.rank));
+    const values = [
+      String(c.rank),
+      c.name,
+      String(c.average_z_score.toFixed(2)),
+      String(c.disagreement.toFixed(2)),
+      String(c.concensus_weight.toFixed(2)),
+      String(c.final_score.toFixed(1)),
+    ];
 
-    const nameSticky = findOrCreateStickyInSection(
-      section, `name-${i + 1}`, concept.name, colStarts[1], y
-    );
-    setNodeText(nameSticky, concept.name);
-
-    const zScoreSticky = findOrCreateStickyInSection(
-      section, `zscore-${i + 1}`, String(concept.average_z_score), colStarts[2], y
-    );
-    setNodeText(zScoreSticky, String(concept.average_z_score.toFixed(2)));
-
-    const disagreeSticky = findOrCreateStickyInSection(
-      section, `disagreement-${i + 1}`, String(concept.disagreement), colStarts[3], y
-    );
-    setNodeText(disagreeSticky, String(concept.disagreement.toFixed(2)));
-
-    const consensusSticky = findOrCreateStickyInSection(
-      section, `consensus-${i + 1}`, String(concept.concensus_weight), colStarts[4], y
-    );
-    setNodeText(consensusSticky, String(concept.concensus_weight.toFixed(2)));
-
-    const finalSticky = findOrCreateStickyInSection(
-      section, `final-${i + 1}`, String(concept.final_score), colStarts[5], y
-    );
-    setNodeText(finalSticky, String(concept.final_score.toFixed(1)));
-  }
-}
-
-/**
- * Updates the titles-for-needs section.
- */
-function drawTitlesForNeedsContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
-
-  const rowHeight = 60;
-  const startY = 100;
-
-  for (let i = 0; i < response.features_and_themes.length; i++) {
-    const item = response.features_and_themes[i];
-    const y = startY + i * rowHeight;
-
-    const needSticky = findOrCreateStickyInSection(
-      section, `need-${i + 1}`, item.theme.need, 20, y
-    );
-    setNodeText(needSticky, item.theme.need);
-
-    const titleSticky = findOrCreateStickyInSection(
-      section, `need-title-${i + 1}`, item.theme.title, 250, y
-    );
-    setNodeText(titleSticky, item.theme.title);
-  }
-}
-
-/**
- * Updates the all-features section.
- */
-function drawAllFeaturesContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
-
-  const rowHeight = 60;
-  const startY = 120;
-
-  for (let i = 0; i < response.features_and_themes.length; i++) {
-    const item = response.features_and_themes[i];
-    const y = startY + i * rowHeight;
-
-    const featureSticky = findOrCreateStickyInSection(
-      section, `feature-${i + 1}`, item.feature, 20, y
-    );
-    setNodeText(featureSticky, item.feature);
-
-    const needSticky = findOrCreateStickyInSection(
-      section, `feature-need-${i + 1}`, item.theme.need, 200, y
-    );
-    setNodeText(needSticky, item.theme.need);
-
-    const rationaleSticky = findOrCreateStickyInSection(
-      section, `feature-rationale-${i + 1}`, item.rationale, 380, y
-    );
-    setNodeText(rationaleSticky, item.rationale);
-  }
-}
-
-/**
- * Updates the all-features-scoring section with participant feature data.
- */
-function drawAllFeaturesScoringContent(section: SectionNode | FrameNode, parsedBoard: ParsedBoard): void {
-
-  const mockScoring = generateMockFeatureScoring(
-    parsedBoard.totalParticipants || 3,
-    3
-  );
-
-  const colWidth = 140;
-  const rowHeight = 50;
-  const startX = 20;
-  const startY = 100;
-
-  let currentParticipant = '';
-  let participantCol = 0;
-  let featureRow = 0;
-
-  for (const scoring of mockScoring) {
-    if (scoring.participant !== currentParticipant) {
-      currentParticipant = scoring.participant;
-      featureRow = 0;
-
-      const participantSticky = findOrCreateStickyInSection(
-        section,
-        `participant-header-${participantCol}`,
-        scoring.participant,
-        startX + participantCol * colWidth * 3,
-        startY
-      );
-      setNodeText(participantSticky, scoring.participant);
-      participantCol++;
+    for (let j = 0; j < cols.length; j++) {
+      createText(section, values[j], x, y, 12, isTop, rowColor, cols[j].width);
+      x += cols[j].width + COL_GAP;
     }
-
-    const col = (participantCol - 1) * 3;
-    const x = startX + col * colWidth;
-    const y = startY + (featureRow + 1) * rowHeight;
-
-    const nameSticky = findOrCreateStickyInSection(
-      section,
-      `scoring-name-${participantCol}-${featureRow}`,
-      scoring.feature_name,
-      x,
-      y
-    );
-    setNodeText(nameSticky, scoring.feature_name);
-
-    const descSticky = findOrCreateStickyInSection(
-      section,
-      `scoring-desc-${participantCol}-${featureRow}`,
-      scoring.feature_description,
-      x + colWidth,
-      y
-    );
-    setNodeText(descSticky, scoring.feature_description);
-
-    const critSticky = findOrCreateStickyInSection(
-      section,
-      `scoring-crit-${participantCol}-${featureRow}`,
-      scoring.criticality,
-      x + colWidth * 2,
-      y
-    );
-    setNodeText(critSticky, scoring.criticality);
-
-    featureRow++;
   }
+
+  resizeToFitContent(section);
+}
+
+/**
+ * Draws the titles-for-needs section:
+ * Two columns — Need and Need Title — with a header row.
+ */
+function drawTitlesForNeedsContent(
+  section: SectionNode | FrameNode,
+  response: AnalysisResponse
+): void {
+  clearTextContent(section);
+
+  const needW = 220;
+  const titleW = 220;
+  const needX = PAD;
+  const titleX = PAD + needW + COL_GAP * 2;
+
+  createText(section, 'Need',       needX,  PAD, 11, true, MUTED, needW);
+  createText(section, 'Need Title', titleX, PAD, 11, true, MUTED, titleW);
+
+  for (let i = 0; i < response.features_and_themes.length; i++) {
+    const item = response.features_and_themes[i];
+    const y = PAD + HEADER_H + i * ROW_H;
+    createText(section, item.theme.need,  needX,  y, 14, false, DARK, needW);
+    createText(section, item.theme.title, titleX, y, 14, true,  DARK, titleW);
+  }
+
+  resizeToFitContent(section);
+}
+
+/**
+ * Draws the all-features section:
+ * Three columns — Feature, Mapped Need, Rationale.
+ */
+function drawAllFeaturesContent(
+  section: SectionNode | FrameNode,
+  response: AnalysisResponse
+): void {
+  clearTextContent(section);
+
+  const featureW   = 180;
+  const needW      = 170;
+  const rationaleW = 220;
+  const featureX   = PAD;
+  const needX      = PAD + featureW + COL_GAP * 2;
+  const rationaleX = needX + needW + COL_GAP * 2;
+
+  createText(section, 'Feature',      featureX,   PAD, 11, true, MUTED, featureW);
+  createText(section, 'Mapped Need',  needX,      PAD, 11, true, MUTED, needW);
+  createText(section, 'Rationale',    rationaleX, PAD, 11, true, MUTED, rationaleW);
+
+  for (let i = 0; i < response.features_and_themes.length; i++) {
+    const item = response.features_and_themes[i];
+    const y = PAD + HEADER_H + i * ROW_H;
+    createText(section, item.feature,       featureX,   y, 12, true,  DARK, featureW);
+    createText(section, item.theme.need,    needX,      y, 12, false, { r: 0.3, g: 0.3, b: 0.3 }, needW);
+    createText(section, item.rationale,     rationaleX, y, 12, false, { r: 0.3, g: 0.3, b: 0.3 }, rationaleW);
+  }
+
+  resizeToFitContent(section);
+}
+
+/**
+ * Draws the all-features-scoring section.
+ * Finds (or creates) participant-X frames, then within each creates
+ * feature-{n}-name, feature-{n}-description, feature-{n}-criticality
+ * child frames populated with the participant's actual feature data.
+ */
+function drawAllFeaturesScoringContent(
+  section: SectionNode | FrameNode,
+  parsedBoard: ParsedBoard
+): void {
+  const critLevels = ['Critical', 'High', 'Medium', 'Low'];
+  const participantW = 420;
+  const participantGap = 24;
+
+  const nameColW = 130;
+  const descColW = 160;
+  const critColW = 90;
+  const nameColX = PAD;
+  const descColX = nameColX + nameColW + COL_GAP;
+  const critColX = descColX + descColW + COL_GAP;
+
+  let nextParticipantX = PAD;
+
+  for (const concept of parsedBoard.concepts) {
+    for (const participant of concept.participants) {
+      const participantName = 'participant-' + String(participant.index);
+
+      let participantFrame = (section as FrameNode).findOne(
+        (n) => (n.type === 'FRAME' || n.type === 'SECTION') &&
+                n.name.toLowerCase() === participantName.toLowerCase()
+      ) as FrameNode | null;
+
+      if (!participantFrame) {
+        participantFrame = figma.createFrame();
+        participantFrame.name = participantName;
+        participantFrame.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.98, b: 0.93 } }];
+        section.appendChild(participantFrame);
+        participantFrame.x = nextParticipantX;
+        participantFrame.y = PAD;
+        participantFrame.resizeWithoutConstraints(participantW, 200);
+      }
+
+      clearTextContent(participantFrame);
+
+      createText(participantFrame, participantName, PAD, PAD, 14, true, DARK);
+
+      createText(participantFrame, 'Feature',     nameColX, PAD + 32, 10, true, MUTED, nameColW);
+      createText(participantFrame, 'Description', descColX, PAD + 32, 10, true, MUTED, descColW);
+      createText(participantFrame, 'Criticality', critColX, PAD + 32, 10, true, MUTED, critColW);
+
+      for (let i = 0; i < participant.features.length; i++) {
+        const feature = participant.features[i];
+        const rowY = PAD + 56 + i * (ROW_H + 4);
+        const criticality = critLevels[i % critLevels.length];
+        const critColor = CRITICALITY_COLORS[criticality] || MUTED;
+
+        const nameFrame = findOrCreateChildFrame(
+          participantFrame, 'feature-' + String(i + 1) + '-name',
+          nameColX, rowY, nameColW, ROW_H
+        );
+        clearTextContent(nameFrame);
+        createText(nameFrame, feature.title, 6, 6, 11, false, DARK, nameColW - 12);
+
+        const descFrame = findOrCreateChildFrame(
+          participantFrame, 'feature-' + String(i + 1) + '-description',
+          descColX, rowY, descColW, ROW_H
+        );
+        clearTextContent(descFrame);
+        createText(descFrame, feature.description, 6, 6, 11, false, { r: 0.3, g: 0.3, b: 0.3 }, descColW - 12);
+
+        const critFrame = findOrCreateChildFrame(
+          participantFrame, 'feature-' + String(i + 1) + '-criticality',
+          critColX, rowY, critColW, ROW_H,
+          { r: critColor.r * 0.15 + 0.85, g: critColor.g * 0.15 + 0.85, b: critColor.b * 0.15 + 0.85 }
+        );
+        clearTextContent(critFrame);
+        createText(critFrame, criticality, 6, 6, 11, true, critColor, critColW - 12);
+      }
+
+      resizeToFitContent(participantFrame);
+      nextParticipantX = participantFrame.x + participantFrame.width + participantGap;
+    }
+  }
+
+  resizeToFitContent(section);
 }
 
 /**

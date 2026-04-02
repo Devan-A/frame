@@ -676,9 +676,7 @@ function findOrCreateStickyInSection(
 /**
  * Updates the highest-scoring-concept-description section.
  */
-function drawHighestScoringConcept(response: AnalysisResponse): void {
-  const section = findOrCreateSection('highest-scoring-concept-description');
-
+function drawHighestScoringConceptContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
   const titleSticky = findOrCreateStickyInSection(section, 'title-of-concept', '', 20, 80);
   setNodeText(titleSticky, response.highest_scoring_concept.name);
   
@@ -689,8 +687,7 @@ function drawHighestScoringConcept(response: AnalysisResponse): void {
 /**
  * Updates the table-of-concept-scores section with concept rankings.
  */
-function drawConceptScoresTable(response: AnalysisResponse): void {
-  const section = findOrCreateSection('table-of-concept-scores');
+function drawConceptScoresTableContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
 
   const rowHeight = 60;
   const startY = 120;
@@ -736,8 +733,7 @@ function drawConceptScoresTable(response: AnalysisResponse): void {
 /**
  * Updates the titles-for-needs section.
  */
-function drawTitlesForNeeds(response: AnalysisResponse): void {
-  const section = findOrCreateSection('titles-for-needs');
+function drawTitlesForNeedsContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
 
   const rowHeight = 60;
   const startY = 100;
@@ -761,8 +757,7 @@ function drawTitlesForNeeds(response: AnalysisResponse): void {
 /**
  * Updates the all-features section.
  */
-function drawAllFeatures(response: AnalysisResponse): void {
-  const section = findOrCreateSection('all-features');
+function drawAllFeaturesContent(section: SectionNode | FrameNode, response: AnalysisResponse): void {
 
   const rowHeight = 60;
   const startY = 120;
@@ -791,8 +786,7 @@ function drawAllFeatures(response: AnalysisResponse): void {
 /**
  * Updates the all-features-scoring section with participant feature data.
  */
-function drawAllFeaturesScoring(parsedBoard: ParsedBoard): void {
-  const section = findOrCreateSection('all-features-scoring');
+function drawAllFeaturesScoringContent(section: SectionNode | FrameNode, parsedBoard: ParsedBoard): void {
 
   const mockScoring = generateMockFeatureScoring(
     parsedBoard.totalParticipants || 3,
@@ -906,11 +900,36 @@ async function analyzeAndDraw(parsedBoard: ParsedBoard): Promise<AnalysisRespons
   nextSectionX = startPos.x;
   nextSectionY = startPos.y;
   
-  drawHighestScoringConcept(response);
-  drawConceptScoresTable(response);
-  drawTitlesForNeeds(response);
-  drawAllFeatures(response);
-  drawAllFeaturesScoring(parsedBoard);
+  console.log('[analyzeAndDraw] Starting position:', startPos);
+  
+  const createdSections: SceneNode[] = [];
+  
+  const section1 = findOrCreateSection('highest-scoring-concept-description');
+  createdSections.push(section1);
+  drawHighestScoringConceptContent(section1, response);
+  
+  const section2 = findOrCreateSection('table-of-concept-scores');
+  createdSections.push(section2);
+  drawConceptScoresTableContent(section2, response);
+  
+  const section3 = findOrCreateSection('titles-for-needs');
+  createdSections.push(section3);
+  drawTitlesForNeedsContent(section3, response);
+  
+  const section4 = findOrCreateSection('all-features');
+  createdSections.push(section4);
+  drawAllFeaturesContent(section4, response);
+  
+  const section5 = findOrCreateSection('all-features-scoring');
+  createdSections.push(section5);
+  drawAllFeaturesScoringContent(section5, parsedBoard);
+  
+  console.log('[analyzeAndDraw] Created sections:', createdSections.map(s => s.name));
+  
+  if (createdSections.length > 0) {
+    figma.viewport.scrollAndZoomIntoView(createdSections);
+    figma.currentPage.selection = createdSections;
+  }
   
   return response;
 }

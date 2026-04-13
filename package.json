@@ -1,7 +1,7 @@
 {
-  "name": "concept-board-parser",
+  "name": "diverge-and-converge",
   "version": "1.0.0",
-  "description": "FigJam plugin that parses structured concept boards and displays hierarchical data",
+  "description": "FigJam plugin for CoE Diverge & Converge workshop analysis",
   "main": "dist/controller.js",
   "scripts": {
     "build": "webpack --mode production",

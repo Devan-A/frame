@@ -3,6 +3,7 @@ import type { ParsedBoard } from '../types';
 
 /**
  * Mock API response data for development/testing.
+ * Shape matches the AnalysisResponse assembled from backend thread state.
  */
 export const mockAnalysisResponse: AnalysisResponse = {
   prioritized_concept_list: [
@@ -44,11 +45,9 @@ export const mockAnalysisResponse: AnalysisResponse = {
       'A comprehensive solution that addresses the primary user need for faster onboarding through an intuitive wizard-based approach with contextual help and progressive disclosure of features. Participants strongly aligned on prioritising simplicity over feature richness.',
   },
   insights: [
-    {
-      strong_concensus: 'All participants agreed that onboarding speed is the top priority.',
-      high_disagreement: 'Significant disagreement on advanced customisation features.',
-      other_data_patterns: 'Clear cluster of preferences around simplicity over feature richness.',
-    },
+    'All participants agreed that onboarding speed is the top priority.',
+    'Significant disagreement on advanced customisation features.',
+    'Clear cluster of preferences around simplicity over feature richness.',
   ],
   features_and_themes: [
     {
@@ -77,6 +76,21 @@ export const mockAnalysisResponse: AnalysisResponse = {
       rationale: 'Reduces integration effort by 60%',
     },
   ],
+  feature_scores: [
+    { feature: 'Interactive Tutorial',    need: 'Faster user activation',    'final-score': 9.2  },
+    { feature: 'Real-time Sync',          need: 'Team coordination',         'final-score': 7.8  },
+    { feature: 'Auto-save & Recovery',    need: 'Prevent data loss',         'final-score': 7.1  },
+    { feature: 'API Integration Layer',   need: 'Third-party connectivity',  'final-score': 6.5  },
+    { feature: 'Multi-language Support',  need: 'Global reach',              'final-score': 5.3  },
+  ],
+  rtc_ebc: {
+    role: 'You are a UX prototyping assistant specialised in rapid Figma Make generation.',
+    task: 'Generate a high-fidelity prototype for the Concept Alpha onboarding wizard.',
+    context: 'Users need faster onboarding. The highest-scoring concept focuses on progressive disclosure with contextual help. Key features include interactive tutorials and real-time sync.',
+    elements: 'Step-progress bar, contextual tooltips, inline tutorial cards, role selector, dashboard shell.',
+    behaviors: 'Wizard advances on CTA click; tooltips appear on first visit; tutorial cards are dismissible; auto-save triggers every 30 seconds.',
+    constraints: 'Must include Interactive Tutorial and Real-time Sync features. Must not require sign-in before the first tutorial step. Mobile-first layout.',
+  },
 };
 
 /**

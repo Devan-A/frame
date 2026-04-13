@@ -1,12 +1,12 @@
 import type { ParsedBoard } from '../../types';
 
 /**
- * Downloads a file with the given content and filename.
+ * Downloads a file with the given content and filename via a temporary anchor.
  */
 function downloadFile(content: string, filename: string, mimeType: string): void {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  var blob = new Blob([content], { type: mimeType });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
@@ -16,88 +16,69 @@ function downloadFile(content: string, filename: string, mimeType: string): void
 }
 
 /**
- * Exports the parsed board data as a JSON file.
+ * Escapes a string for safe CSV inclusion.
  */
-export function exportToJSON(data: ParsedBoard): void {
-  const jsonString = JSON.stringify(data, null, 2);
-  const timestamp = new Date().toISOString().slice(0, 10);
-  downloadFile(jsonString, `concept-board-${timestamp}.json`, 'application/json');
+function escapeCSV(value: string): string {
+  if (value.indexOf(',') >= 0 || value.indexOf('"') >= 0 || value.indexOf('\n') >= 0) {
+    return '"' + value.replace(/"/g, '""') + '"';
+  }
+  return value;
 }
 
 /**
- * Exports the parsed board data as a CSV file.
- * Flattens the hierarchical data into rows.
+ * Exports parsed board data as a scores CSV matching the backend's
+ * user_concept_scores format:
+ *   project_name, participant_id, concept_id, concept_name,
+ *   score, features_to_include, feature_description
+ *
+ * One row per participant-concept combination; features are aggregated.
  */
-export function exportToCSV(data: ParsedBoard): void {
-  const headers = [
-    'concept_index',
-    'concept_avg_score',
-    'participant_index',
-    'participant_score',
-    'feature_index',
-    'feature_title',
+export function exportToScoresCSV(data: ParsedBoard, projectName: string): void {
+  var csvHeaders = [
+    'project_name',
+    'participant_id',
+    'concept_id',
+    'concept_name',
+    'score',
+    'features_to_include',
     'feature_description',
   ];
 
-  const rows: string[][] = [];
+  var rows: string[][] = [];
 
-  for (const concept of data.concepts) {
-    if (concept.participants.length === 0) {
+  for (var c = 0; c < data.concepts.length; c++) {
+    var concept = data.concepts[c];
+    for (var p = 0; p < concept.participants.length; p++) {
+      var participant = concept.participants[p];
+      var titles: string[] = [];
+      var descs: string[] = [];
+      for (var f = 0; f < participant.features.length; f++) {
+        var feat = participant.features[f];
+        if (feat.title && feat.title !== '[untitled]') titles.push(feat.title);
+        if (feat.description && feat.description !== '[no description]') descs.push(feat.description);
+      }
+
       rows.push([
-        String(concept.index),
-        concept.averageScore !== null ? String(concept.averageScore) : 'N/A',
-        '',
-        '',
-        '',
-        '',
-        '',
+        escapeCSV(projectName),
+        escapeCSV('participant-' + participant.index),
+        escapeCSV('concept-' + concept.index),
+        escapeCSV('Concept ' + concept.index),
+        participant.conceptScore !== null ? String(participant.conceptScore) : '',
+        escapeCSV(titles.join(', ')),
+        escapeCSV(descs.join('; ')),
       ]);
-      continue;
-    }
-
-    for (const participant of concept.participants) {
-      if (participant.features.length === 0) {
-        rows.push([
-          String(concept.index),
-          concept.averageScore !== null ? String(concept.averageScore) : 'N/A',
-          String(participant.index),
-          participant.conceptScore !== null ? String(participant.conceptScore) : 'N/A',
-          '',
-          '',
-          '',
-        ]);
-        continue;
-      }
-
-      for (const feature of participant.features) {
-        rows.push([
-          String(concept.index),
-          concept.averageScore !== null ? String(concept.averageScore) : 'N/A',
-          String(participant.index),
-          participant.conceptScore !== null ? String(participant.conceptScore) : 'N/A',
-          String(feature.index),
-          escapeCSV(feature.title),
-          escapeCSV(feature.description),
-        ]);
-      }
     }
   }
 
-  const csvContent = [
-    headers.join(','),
-    ...rows.map((row) => row.join(',')),
-  ].join('\n');
-
-  const timestamp = new Date().toISOString().slice(0, 10);
-  downloadFile(csvContent, `concept-board-${timestamp}.csv`, 'text/csv');
-}
-
-/**
- * Escapes a string for CSV format.
- */
-function escapeCSV(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
+  var lines = [csvHeaders.join(',')];
+  for (var r = 0; r < rows.length; r++) {
+    lines.push(rows[r].join(','));
   }
-  return value;
+
+  var timestamp = new Date().toISOString().slice(0, 10);
+  downloadFile(
+    lines.join('\n'),
+    projectName.replace(/\s+/g, '_') + '-scores-' + timestamp + '.csv',
+    'text/csv',
+  );
 }

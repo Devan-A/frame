@@ -52,6 +52,9 @@ export interface ParsedBoard {
 }
 /**
  * Message types sent from UI to plugin controller.
+ *
+ * DRAW_RESULTS is sent after the UI completes the backend API flow.
+ * The controller uses the analysis payload to draw on the board.
  */
 export type UIToControllerMessage = {
     type: 'PARSE_BOARD';
@@ -62,6 +65,10 @@ export type UIToControllerMessage = {
     nodeId: string;
 } | {
     type: 'ANALYZE_BOARD';
+} | {
+    type: 'DRAW_RESULTS';
+    analysis: import('../types/api').AnalysisResponse;
+    parsedBoard: ParsedBoard;
 };
 /**
  * Message types sent from plugin controller to UI.

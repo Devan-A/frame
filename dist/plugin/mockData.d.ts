@@ -2,6 +2,7 @@ import type { AnalysisResponse } from '../types/api';
 import type { ParsedBoard } from '../types';
 /**
  * Mock API response data for development/testing.
+ * Shape matches the AnalysisResponse assembled from backend thread state.
  */
 export declare const mockAnalysisResponse: AnalysisResponse;
 /**

@@ -1,6 +1,6 @@
 {
-  "name": "Concept Board Parser",
-  "id": "concept-board-parser",
+  "name": "Diverge & Converge",
+  "id": "diverge-and-converge",
   "api": "1.0.0",
   "main": "dist/controller.js",
   "ui": "dist/index.html",

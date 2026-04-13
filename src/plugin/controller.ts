@@ -8,6 +8,8 @@ import type {
 import type { AnalysisResponse } from '../types/api';
 import { mockAnalysisResponse, mockParsedBoard } from './mockData';
 
+declare const __html__: string;
+
 const CONCEPT_PATTERN = /^concept-(\d+)$/i;
 const PARTICIPANT_PATTERN = /^participant-(\d+)$/i;
 const FEATURE_PATTERN = /^feature-(\d+)$/i;
@@ -810,12 +812,19 @@ function drawConceptScoresTableContent(
     const isTop  = i === 0;
     const color: RGB = isTop ? { r: 0.07, g: 0.48, b: 0.32 } : DARK;
 
+    const safeFixed = function (v: unknown, decimals: number): string {
+      var n = Number(v);
+      if (isNaN(n)) return '—';
+      return n.toFixed(decimals);
+    };
+
     const values = [
-      String(c.rank), c.name,
-      String(c.average_z_score.toFixed(2)),
-      String(c.disagreement.toFixed(2)),
-      String(c.concensus_weight.toFixed(2)),
-      String(c.final_score.toFixed(1)),
+      String(c.rank || i + 1),
+      c.name || '(unnamed)',
+      safeFixed(c.average_z_score, 2),
+      safeFixed(c.disagreement, 2),
+      safeFixed(c.concensus_weight, 2),
+      safeFixed(c.final_score, 1),
     ];
 
     x = pad;
@@ -1033,49 +1042,54 @@ async function loadFonts(): Promise<void> {
 }
 
 /**
- * Main function to analyze board and draw results.
+ * Main function to draw analysis results on the board.
+ *
+ * @param response  Analysis data (from backend API or mock).
+ * @param parsedBoard  Parsed board structure used for per-participant section.
  */
-async function analyzeAndDraw(parsedBoard: ParsedBoard): Promise<AnalysisResponse> {
+async function analyzeAndDraw(
+  response: AnalysisResponse,
+  parsedBoard: ParsedBoard,
+): Promise<string[]> {
   await loadFonts();
-  
-  const response = mockAnalysisResponse;
-  
+
   const startPos = calculateNewSectionStartPosition();
   nextSectionX = startPos.x;
   nextSectionY = startPos.y;
-  
+
   console.log('[analyzeAndDraw] Starting position:', startPos);
-  
+
   const createdSections: SceneNode[] = [];
-  
+
   const section1 = findOrCreateSection('highest-scoring-concept-description');
   createdSections.push(section1);
   drawHighestScoringConceptContent(section1, response);
-  
+
   const section2 = findOrCreateSection('table-of-concept-scores');
   createdSections.push(section2);
   drawConceptScoresTableContent(section2, response);
-  
+
   const section3 = findOrCreateSection('titles-for-needs');
   createdSections.push(section3);
   drawTitlesForNeedsContent(section3, response);
-  
+
   const section4 = findOrCreateSection('all-features');
   createdSections.push(section4);
   drawAllFeaturesContent(section4, response);
-  
+
   const section5 = findOrCreateSection('all-features-scoring');
   createdSections.push(section5);
   drawAllFeaturesScoringContent(section5, parsedBoard);
-  
-  console.log('[analyzeAndDraw] Created sections:', createdSections.map(s => s.name));
-  
+
+  const sectionNames = createdSections.map(function (s) { return s.name; });
+  console.log('[analyzeAndDraw] Updated sections:', sectionNames);
+
   if (createdSections.length > 0) {
     figma.viewport.scrollAndZoomIntoView(createdSections);
     figma.currentPage.selection = createdSections;
   }
-  
-  return response;
+
+  return sectionNames;
 }
 
 figma.showUI(__html__, {
@@ -1096,16 +1110,14 @@ figma.ui.onmessage = async (msg: UIToControllerMessage) => {
 
       case 'ANALYZE_BOARD': {
         figma.ui.postMessage({ type: 'ANALYSIS_STARTED' });
-        // Use fully mocked board data so drawing can be validated independently
-        // of whatever is currently on the board.
-        await analyzeAndDraw(mockParsedBoard);
-        const sectionsUpdated = [
-          'highest-scoring-concept-description',
-          'table-of-concept-scores',
-          'titles-for-needs',
-          'all-features',
-          'all-features-scoring',
-        ];
+        const sectionsUpdated = await analyzeAndDraw(mockAnalysisResponse, mockParsedBoard);
+        figma.ui.postMessage({ type: 'ANALYSIS_COMPLETE', sectionsUpdated });
+        break;
+      }
+
+      case 'DRAW_RESULTS': {
+        figma.ui.postMessage({ type: 'ANALYSIS_STARTED' });
+        const sectionsUpdated = await analyzeAndDraw(msg.analysis, msg.parsedBoard);
         figma.ui.postMessage({ type: 'ANALYSIS_COMPLETE', sectionsUpdated });
         break;
       }
@@ -1124,6 +1136,6 @@ figma.ui.onmessage = async (msg: UIToControllerMessage) => {
     const errorMessage =
       error instanceof Error ? error.message : 'An unknown error occurred';
     console.error('Plugin error:', error);
-    figma.ui.postMessage({ type: 'PARSE_ERROR', message: errorMessage });
+    figma.ui.postMessage({ type: 'ANALYSIS_ERROR', message: errorMessage });
   }
 };

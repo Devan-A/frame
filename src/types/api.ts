@@ -1,6 +1,14 @@
 /**
- * API response types for concept analysis
+ * Backend API types aligned with the Lithium converge-diverge agent.
+ *
+ * Thread state keys after a complete run:
+ *   concept_scores   → ConceptScoresResult
+ *   features_and_themes → FeatureTheme[]
+ *   feature_scores   → FeatureScoreItem[]
+ *   rtc_ebc          → RtcEbc
  */
+
+// ── Concept scoring (from `normalized_concept_scores` schema) ───────────
 
 export interface ConceptScore {
   name: string;
@@ -13,17 +21,19 @@ export interface ConceptScore {
   final_score: number;
 }
 
-export interface Concept {
+export interface HighestScoringConcept {
   name: string;
   id: string;
   description: string;
 }
 
-export interface Insight {
-  strong_concensus: string;
-  high_disagreement: string;
-  other_data_patterns: string;
+export interface ConceptScoresResult {
+  prioritized_concept_list: ConceptScore[];
+  highest_scoring_concept: HighestScoringConcept;
+  insights: string[];
 }
+
+// ── Feature themes (from `features_and_themes` schema) ──────────────────
 
 export interface Theme {
   title: string;
@@ -36,20 +46,50 @@ export interface FeatureTheme {
   rationale: string;
 }
 
+// ── Feature scoring (from `highest_scoring_features` schema) ────────────
+
+export interface FeatureScoreItem {
+  feature: string;
+  need: string;
+  'final-score': number;
+}
+
+// ── RTC-EBC output ──────────────────────────────────────────────────────
+
+export interface RtcEbc {
+  role: string;
+  task: string;
+  context: string;
+  elements: string;
+  behaviors: string;
+  constraints: string;
+}
+
+// ── Unified analysis result consumed by controller drawing functions ────
+
 export interface AnalysisResponse {
   prioritized_concept_list: ConceptScore[];
-  highest_scoring_concept: Concept;
-  insights: Insight[];
+  highest_scoring_concept: HighestScoringConcept;
+  insights: string[];
   features_and_themes: FeatureTheme[];
+  feature_scores: FeatureScoreItem[];
+  rtc_ebc: RtcEbc;
 }
 
-export interface FeatureScoring {
-  participant: string;
-  feature_name: string;
-  feature_description: string;
-  criticality: string;
+// ── Backend HTTP response shapes ────────────────────────────────────────
+
+export interface ThreadResponse {
+  thread_id: string;
 }
 
-export interface AllFeaturesResponse {
-  features: FeatureScoring[];
+export interface RunResponse {
+  thread_id: string;
+  type: string;
+  content: unknown;
+}
+
+export interface ThreadStateResponse {
+  thread_id: string;
+  next: string[];
+  values: Record<string, unknown>;
 }

@@ -1066,6 +1066,10 @@ async function analyzeAndDraw(
   createdSections.push(section1);
   drawHighestScoringConceptContent(section1, response);
 
+  // Place the scores table directly below the description
+  nextSectionX = section1.x;
+  nextSectionY = section1.y + (section1 as FrameNode).height + 50;
+
   const section2 = findOrCreateSection('table-of-concept-scores');
   createdSections.push(section2);
   drawConceptScoresTableContent(section2, response);

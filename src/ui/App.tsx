@@ -8,23 +8,7 @@ import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import { Confetti } from './components/Confetti';
 import { exportToScoresCSV } from './utils/export';
 
-var STORAGE_KEY_URL = 'coe-backend-url';
-var STORAGE_KEY_KEY = 'coe-api-key';
-var STORAGE_KEY_PROJECT = 'coe-project-name';
-
-function loadSaved(key: string, fallback: string): string {
-  try {
-    return localStorage.getItem(key) || fallback;
-  } catch (_e) {
-    return fallback;
-  }
-}
-
-function persist(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch (_e) { /* noop */ }
-}
+var BACKEND_URL = 'https://lithium.fly.dev';
 
 function formatMs(ms: number): string {
   var secs = Math.floor(ms / 1000);
@@ -84,15 +68,6 @@ function StepTimeline(props: { steps: StepLogEntry[]; analyzing: boolean }) {
   );
 }
 
-function SettingsIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
 function DownloadIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -124,39 +99,20 @@ export default function App() {
   var isAnalyzing = hook.isAnalyzing;
   var error = hook.error;
   var analysisResult = hook.analysisResult;
-  var progress = hook.progress;
   var stepLog = hook.stepLog;
   var elapsedMs = hook.elapsedMs;
   var justFinished = hook.justFinished;
-  var parseBoard = hook.parseBoard;
   var analyzeBoardApi = hook.analyzeBoardApi;
   var highlightNode = hook.highlightNode;
   var dismissFinished = hook.dismissFinished;
 
-  var _bu = useState(function () { return loadSaved(STORAGE_KEY_URL, 'http://localhost:8000'); });
-  var backendUrl = _bu[0]; var setBackendUrl = _bu[1];
-  var _ak = useState(function () { return loadSaved(STORAGE_KEY_KEY, ''); });
-  var apiKey = _ak[0]; var setApiKey = _ak[1];
-  var _pn = useState(function () { return loadSaved(STORAGE_KEY_PROJECT, 'Concept Board'); });
-  var projectName = _pn[0]; var setProjectName = _pn[1];
-  var _ss = useState(false);
-  var showSettings = _ss[0]; var setShowSettings = _ss[1];
+  var projectName = 'Concept Board';
 
-  var handleBackendUrlChange = function (e: React.ChangeEvent<HTMLInputElement>) {
-    setBackendUrl(e.target.value);
-    persist(STORAGE_KEY_URL, e.target.value);
-  };
-  var handleApiKeyChange = function (e: React.ChangeEvent<HTMLInputElement>) {
-    setApiKey(e.target.value);
-    persist(STORAGE_KEY_KEY, e.target.value);
-  };
-  var handleProjectNameChange = function (e: React.ChangeEvent<HTMLInputElement>) {
-    setProjectName(e.target.value);
-    persist(STORAGE_KEY_PROJECT, e.target.value);
-  };
+  var _em = useState(false);
+  var experimentMode = _em[0]; var setExperimentMode = _em[1];
 
-  var handleAnalyzeApi = function () {
-    analyzeBoardApi({ baseUrl: backendUrl.replace(/\/+$/, ''), apiKey: apiKey }, projectName);
+  var handleRun = function () {
+    analyzeBoardApi({ baseUrl: BACKEND_URL }, projectName, { experimentMode: experimentMode });
   };
 
   var handleExportScoresCSV = function () {
@@ -171,101 +127,51 @@ export default function App() {
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-[var(--figma-color-border)]">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'var(--color-green-light)' }}
-            >
-              <HumanaLogo />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-[var(--figma-color-text)] leading-tight">Diverge & Converge</h1>
-              <p className="text-[10px] text-[var(--figma-color-text-tertiary)]">CoE Workshop Analyzer</p>
-            </div>
-          </div>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--figma-color-text-tertiary)] hover:text-[var(--figma-color-text)] hover:bg-[var(--figma-color-bg-tertiary)] transition-all duration-200"
-            onClick={function () { setShowSettings(function (v) { return !v; }); }}
-            title="Settings"
+        <div className="flex items-center gap-2.5 mb-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'var(--color-green-light)' }}
           >
-            <SettingsIcon />
-          </button>
+            <HumanaLogo />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-[var(--figma-color-text)] leading-tight">Diverge & Converge</h1>
+            <p className="text-[10px] text-[var(--figma-color-text-tertiary)]">CoE Workshop Analyzer</p>
+          </div>
         </div>
 
-        {/* Settings panel */}
-        {showSettings && (
-          <div className="mb-3 p-3 rounded-xl bg-[var(--figma-color-bg-secondary)] border border-[var(--figma-color-border)] space-y-2.5 anim-slide-down">
-            <label className="block">
-              <span className="text-[10px] font-semibold text-[var(--figma-color-text-secondary)] uppercase tracking-wider">
-                Backend URL
-              </span>
-              <input
-                type="text"
-                value={backendUrl}
-                onChange={handleBackendUrlChange}
-                placeholder="http://localhost:8000"
-                className="mt-1 w-full px-3 py-2 text-xs rounded-lg border border-[var(--figma-color-border)] bg-white text-[var(--figma-color-text)] placeholder-[var(--figma-color-text-tertiary)] focus:outline-none focus:border-[var(--color-green)] transition-colors"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[10px] font-semibold text-[var(--figma-color-text-secondary)] uppercase tracking-wider">
-                API Key (Anthropic)
-              </span>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={handleApiKeyChange}
-                placeholder="sk-ant-…"
-                className="mt-1 w-full px-3 py-2 text-xs rounded-lg border border-[var(--figma-color-border)] bg-white text-[var(--figma-color-text)] placeholder-[var(--figma-color-text-tertiary)] focus:outline-none focus:border-[var(--color-green)] transition-colors"
-              />
-            </label>
-            <label className="block">
-              <span className="text-[10px] font-semibold text-[var(--figma-color-text-secondary)] uppercase tracking-wider">
-                Project Name
-              </span>
-              <input
-                type="text"
-                value={projectName}
-                onChange={handleProjectNameChange}
-                placeholder="Concept Board"
-                className="mt-1 w-full px-3 py-2 text-xs rounded-lg border border-[var(--figma-color-border)] bg-white text-[var(--figma-color-text)] placeholder-[var(--figma-color-text-tertiary)] focus:outline-none focus:border-[var(--color-green)] transition-colors"
-              />
-            </label>
-          </div>
-        )}
 
-        {/* Action buttons */}
-        <div className="flex gap-2">
+        {/* Action row */}
+        <div className="flex items-center gap-2">
           <button
-            className="btn-secondary flex-1 flex items-center justify-center gap-1.5 py-2"
-            onClick={parseBoard}
+            className={'btn-primary flex-1 flex items-center justify-center gap-1.5' + (isAnalyzing ? ' pulse-glow' : '')}
+            onClick={handleRun}
             disabled={busy}
           >
             {isLoading ? (
               <>
                 <SpinnerIcon className="w-3.5 h-3.5" />
-                <span>Parsing…</span>
+                <span>Parsing board…</span>
               </>
-            ) : (
-              <span>Parse Board</span>
-            )}
-          </button>
-          <button
-            className={'btn-primary flex-1 flex items-center justify-center gap-1.5' + (isAnalyzing ? ' pulse-glow' : '')}
-            onClick={handleAnalyzeApi}
-            disabled={busy}
-          >
-            {isAnalyzing ? (
+            ) : isAnalyzing ? (
               <>
                 <SpinnerIcon className="w-3.5 h-3.5" />
                 <span>Analyzing…</span>
               </>
             ) : (
-              <span>Analyze</span>
+              <span>Run Analysis</span>
             )}
           </button>
         </div>
+        <label className="flex items-center gap-1.5 mt-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={experimentMode}
+            onChange={function (e) { setExperimentMode(e.target.checked); }}
+            className="accent-[var(--color-green)] w-3.5 h-3.5 rounded cursor-pointer"
+          />
+          <span className="text-[10px] text-[var(--figma-color-text-secondary)]">Run all agents</span>
+        </label>
 
         {/* Timer during analysis */}
         {isAnalyzing && (
@@ -363,8 +269,8 @@ export default function App() {
         {!data && !isLoading && !error && (
           <EmptyState
             icon={<BoardIcon />}
-            title="No data yet"
-            description="Click 'Parse Board' to scan your FigJam board for concepts, participants, and features."
+            title="Ready to analyze"
+            description="Click 'Run Analysis' to parse your board and run the Diverge & Converge agent."
           />
         )}
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ParsedBoard, ControllerToUIMessage } from '../../types';
 import type { AnalysisResponse } from '../../types/api';
-import { runFullAnalysis, type ApiConfig, type ProgressCallback } from '../api';
+import { runFullAnalysis, type ApiConfig, type ProgressCallback, type RunOptions } from '../api';
 
 export interface StepLogEntry {
   step: string;
@@ -28,7 +28,7 @@ interface UseParsedBoardReturn {
   /** Whether analysis just completed (stays true until next run). */
   justFinished: boolean;
   parseBoard: () => void;
-  analyzeBoardApi: (cfg: ApiConfig, projectName: string) => void;
+  analyzeBoardApi: (cfg: ApiConfig, projectName: string, options?: RunOptions) => void;
   highlightNode: (nodeId: string) => void;
   /** Clear the "just finished" celebration state. */
   dismissFinished: () => void;
@@ -152,7 +152,7 @@ export function useParsedBoard(): UseParsedBoardReturn {
   }, [data]);
 
   var analyzeBoardApi = useCallback(
-    function (cfg: ApiConfig, projectName: string) {
+    function (cfg: ApiConfig, projectName: string, options?: RunOptions) {
       setIsAnalyzing(true);
       setError(null);
       setAnalysisResult(null);
@@ -183,6 +183,7 @@ export function useParsedBoard(): UseParsedBoardReturn {
             board,
             projectName,
             onProgress,
+            options,
           );
 
           setProgress({ step: 'Drawing results on board…' });
@@ -199,6 +200,7 @@ export function useParsedBoard(): UseParsedBoardReturn {
                 type: 'DRAW_RESULTS',
                 analysis: analysis,
                 parsedBoard: board,
+                experimentMode: options?.experimentMode ?? false,
               },
             },
             '*',

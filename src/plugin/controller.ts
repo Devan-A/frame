@@ -1050,6 +1050,7 @@ async function loadFonts(): Promise<void> {
 async function analyzeAndDraw(
   response: AnalysisResponse,
   parsedBoard: ParsedBoard,
+  experimentMode: boolean = false,
 ): Promise<string[]> {
   await loadFonts();
 
@@ -1057,7 +1058,7 @@ async function analyzeAndDraw(
   nextSectionX = startPos.x;
   nextSectionY = startPos.y;
 
-  console.log('[analyzeAndDraw] Starting position:', startPos);
+  console.log('[analyzeAndDraw] Starting position:', startPos, 'experimentMode:', experimentMode);
 
   const createdSections: SceneNode[] = [];
 
@@ -1069,17 +1070,19 @@ async function analyzeAndDraw(
   createdSections.push(section2);
   drawConceptScoresTableContent(section2, response);
 
-  const section3 = findOrCreateSection('titles-for-needs');
-  createdSections.push(section3);
-  drawTitlesForNeedsContent(section3, response);
+  if (experimentMode) {
+    const section3 = findOrCreateSection('titles-for-needs');
+    createdSections.push(section3);
+    drawTitlesForNeedsContent(section3, response);
 
-  const section4 = findOrCreateSection('all-features');
-  createdSections.push(section4);
-  drawAllFeaturesContent(section4, response);
+    const section4 = findOrCreateSection('all-features');
+    createdSections.push(section4);
+    drawAllFeaturesContent(section4, response);
 
-  const section5 = findOrCreateSection('all-features-scoring');
-  createdSections.push(section5);
-  drawAllFeaturesScoringContent(section5, parsedBoard);
+    const section5 = findOrCreateSection('all-features-scoring');
+    createdSections.push(section5);
+    drawAllFeaturesScoringContent(section5, parsedBoard);
+  }
 
   const sectionNames = createdSections.map(function (s) { return s.name; });
   console.log('[analyzeAndDraw] Updated sections:', sectionNames);
@@ -1117,7 +1120,7 @@ figma.ui.onmessage = async (msg: UIToControllerMessage) => {
 
       case 'DRAW_RESULTS': {
         figma.ui.postMessage({ type: 'ANALYSIS_STARTED' });
-        const sectionsUpdated = await analyzeAndDraw(msg.analysis, msg.parsedBoard);
+        const sectionsUpdated = await analyzeAndDraw(msg.analysis, msg.parsedBoard, msg.experimentMode ?? false);
         figma.ui.postMessage({ type: 'ANALYSIS_COMPLETE', sectionsUpdated });
         break;
       }

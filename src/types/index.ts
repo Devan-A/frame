@@ -65,7 +65,7 @@ export type UIToControllerMessage =
   | { type: 'CLOSE_PLUGIN' }
   | { type: 'HIGHLIGHT_NODE'; nodeId: string }
   | { type: 'ANALYZE_BOARD' }
-  | { type: 'DRAW_RESULTS'; analysis: import('../types/api').AnalysisResponse; parsedBoard: ParsedBoard };
+  | { type: 'DRAW_RESULTS'; analysis: import('../types/api').AnalysisResponse; parsedBoard: ParsedBoard; experimentMode?: boolean };
 
 /**
  * Message types sent from plugin controller to UI.

@@ -15,7 +15,6 @@ import type { ParsedBoard } from '../types';
 import type { AnalysisResponse } from '../types/api';
 export interface ApiConfig {
     baseUrl: string;
-    apiKey: string;
 }
 /**
  * Build the initial user message containing <features_and_needs /> XML.
@@ -43,5 +42,8 @@ export type ProgressCallback = (step: string, detail?: string) => void;
  * @param onProgress   Optional status callback surfaced in the UI.
  * @returns The assembled AnalysisResponse ready for drawing.
  */
-export declare function runFullAnalysis(cfg: ApiConfig, board: ParsedBoard, projectName: string, onProgress?: ProgressCallback): Promise<AnalysisResponse>;
+export interface RunOptions {
+    experimentMode?: boolean;
+}
+export declare function runFullAnalysis(cfg: ApiConfig, board: ParsedBoard, projectName: string, onProgress?: ProgressCallback, options?: RunOptions): Promise<AnalysisResponse>;
 //# sourceMappingURL=api.d.ts.map

@@ -30,15 +30,12 @@ const AGENT_NAME = 'converge-diverge';
 
 export interface ApiConfig {
   baseUrl: string;
-  apiKey: string;
 }
 
 // ── Low-level HTTP helpers ──────────────────────────────────────────────
 
-function headers(cfg: ApiConfig): Record<string, string> {
-  const h: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (cfg.apiKey) h['X-Api-Key'] = cfg.apiKey;
-  return h;
+function headers(_cfg: ApiConfig): Record<string, string> {
+  return { 'Content-Type': 'application/json' };
 }
 
 async function createThread(cfg: ApiConfig): Promise<string> {
@@ -73,16 +70,22 @@ async function postRun(
 async function getThreadState(
   cfg: ApiConfig,
   threadId: string,
+  retries: number = 3,
 ): Promise<ThreadStateResponse> {
-  const res = await fetch(
-    `${cfg.baseUrl}/agents/${AGENT_NAME}/threads/${threadId}`,
-    { headers: headers(cfg) },
-  );
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Get thread state failed (${res.status}): ${text}`);
+  for (var attempt = 0; attempt <= retries; attempt++) {
+    var res = await fetch(
+      cfg.baseUrl + '/agents/' + AGENT_NAME + '/threads/' + threadId,
+      { headers: headers(cfg) },
+    );
+    if (res.ok) return res.json();
+    if (res.status === 404 && attempt < retries) {
+      await new Promise(function (r) { setTimeout(r, 1000 * (attempt + 1)); });
+      continue;
+    }
+    var text = await res.text();
+    throw new Error('Get thread state failed (' + res.status + '): ' + text);
   }
-  return res.json();
+  throw new Error('Get thread state failed after ' + retries + ' retries');
 }
 
 // ── Data transformation: ParsedBoard → backend input formats ────────────
@@ -299,17 +302,25 @@ export type ProgressCallback = (step: string, detail?: string) => void;
  * @param onProgress   Optional status callback surfaced in the UI.
  * @returns The assembled AnalysisResponse ready for drawing.
  */
+export interface RunOptions {
+  experimentMode?: boolean;
+}
+
 export async function runFullAnalysis(
   cfg: ApiConfig,
   board: ParsedBoard,
   projectName: string,
   onProgress?: ProgressCallback,
+  options?: RunOptions,
 ): Promise<AnalysisResponse> {
+  const fullRun = options?.experimentMode ?? false;
+  const totalSteps = fullRun ? 4 : 2;
+
   onProgress?.('Creating conversation thread…');
   const threadId = await createThread(cfg);
 
   // Step 1: send features_and_needs → agent calls map_feature_to_themes → interrupts
-  onProgress?.('Sending board data to agent…', 'Step 1/4 — mapping features to themes');
+  onProgress?.('Sending board data to agent…', 'Step 1/' + totalSteps + ' — mapping features to themes');
   const initialMessage = buildFeaturesAndNeedsMessage(board);
   await postRun(cfg, threadId, { message: initialMessage });
 
@@ -317,30 +328,32 @@ export async function runFullAnalysis(
 
   // Step 2: if interrupted, resume with user_scores_and_solutions
   if (state.next.length > 0) {
-    onProgress?.('Providing concept scores…', 'Step 2/4 — scoring concepts');
+    onProgress?.('Providing concept scores…', 'Step 2/' + totalSteps + ' — scoring concepts');
     const scoresPayload = buildUserScoresAndSolutions(board, projectName);
     await postRun(cfg, threadId, { resume: scoresPayload });
 
     state = await getThreadState(cfg, threadId);
   }
 
-  // Step 3+4: if interrupted again, resume with user_feature_scores.
-  // score_features and generate_rct_ebc run back-to-back without an
-  // interrupt, so this single resume covers both steps.
-  if (state.next.length > 0) {
-    onProgress?.('Providing feature scores…', 'Step 3/4 — scoring features');
-    const featurePayload = buildUserFeatureScores(board, projectName);
-    await postRun(cfg, threadId, { resume: featurePayload });
+  if (fullRun) {
+    // Step 3+4: if interrupted again, resume with user_feature_scores.
+    // score_features and generate_rct_ebc run back-to-back without an
+    // interrupt, so this single resume covers both steps.
+    if (state.next.length > 0) {
+      onProgress?.('Providing feature scores…', 'Step 3/4 — scoring features');
+      const featurePayload = buildUserFeatureScores(board, projectName);
+      await postRun(cfg, threadId, { resume: featurePayload });
 
-    onProgress?.('Generating RTC-EBC framework…', 'Step 4/4 — final synthesis');
-    state = await getThreadState(cfg, threadId);
-  }
+      onProgress?.('Generating RTC-EBC framework…', 'Step 4/4 — final synthesis');
+      state = await getThreadState(cfg, threadId);
+    }
 
-  // Edge case: if still paused, nudge the agent forward.
-  if (state.next.length > 0) {
-    onProgress?.('Finalising analysis…');
-    await postRun(cfg, threadId, { resume: '' });
-    state = await getThreadState(cfg, threadId);
+    // Edge case: if still paused, nudge the agent forward.
+    if (state.next.length > 0) {
+      onProgress?.('Finalising analysis…');
+      await postRun(cfg, threadId, { resume: '' });
+      state = await getThreadState(cfg, threadId);
+    }
   }
 
   onProgress?.('Extracting results…');

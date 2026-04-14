@@ -1,5 +1,5 @@
 import type { ParsedBoard } from '../../types';
-import { type ApiConfig } from '../api';
+import { type ApiConfig, type RunOptions } from '../api';
 export interface StepLogEntry {
     step: string;
     detail?: string;
@@ -23,7 +23,7 @@ interface UseParsedBoardReturn {
     /** Whether analysis just completed (stays true until next run). */
     justFinished: boolean;
     parseBoard: () => void;
-    analyzeBoardApi: (cfg: ApiConfig, projectName: string) => void;
+    analyzeBoardApi: (cfg: ApiConfig, projectName: string, options?: RunOptions) => void;
     highlightNode: (nodeId: string) => void;
     /** Clear the "just finished" celebration state. */
     dismissFinished: () => void;

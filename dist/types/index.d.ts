@@ -69,6 +69,7 @@ export type UIToControllerMessage = {
     type: 'DRAW_RESULTS';
     analysis: import('../types/api').AnalysisResponse;
     parsedBoard: ParsedBoard;
+    experimentMode?: boolean;
 };
 /**
  * Message types sent from plugin controller to UI.
